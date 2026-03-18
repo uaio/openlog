@@ -79,11 +79,10 @@ aiconsole/
 │   │   ├── src/
 │   │   │   ├── tools/         # MCP 工具定义
 │   │   │   │   ├── list_devices.ts
-│   │   │   │   ├── get_logs.ts
-│   │   │   │   ├── get_network.ts
+│   │   │   │   ├── get_console_logs.ts
+│   │   │   │   ├── get_network_logs.ts
 │   │   │   │   ├── get_storage.ts
-│   │   │   │   ├── get_device_info.ts
-│   │   │   │   └── execute_script.ts
+│   │   │   │   └── get_device_info.ts
 │   │   │   └── index.ts
 │   │   └── package.json
 │   │
@@ -115,6 +114,17 @@ new VConsole({
   defaultPlugins: ['system', 'network', 'element', 'storage'],
 });
 ```
+
+#### server 参数自动检测逻辑
+
+当 `server` 参数未指定时，SDK 按以下顺序尝试连接：
+
+1. `ws://{当前页面host}:3000` - 假设服务器在当前开发服务器的 3000 端口
+2. 连接失败则不启用远程推送，仅保留本地 vConsole 功能
+
+示例：
+- 页面地址 `http://192.168.1.100:8080` → 尝试 `ws://192.168.1.100:3000`
+- 页面地址 `http://localhost:5173` → 尝试 `ws://localhost:3000`
 
 #### 新增功能
 
@@ -173,7 +183,8 @@ AI 可通过以下 MCP 工具查看设备信息：
 | `get_network_logs` | 获取网络请求记录 | `deviceId`, `limit`, `filter` |
 | `get_storage` | 获取存储数据 | `deviceId`, `type` |
 | `get_device_info` | 获取设备详细信息 | `deviceId` |
-| `execute_script` | 在设备上执行 JS | `deviceId`, `code` |
+
+> **注意**：`execute_script` 功能因安全风险暂不实现。如需执行代码，用户应在设备端手动操作。
 
 #### 使用示例
 
@@ -187,8 +198,8 @@ AI 调用 list_devices()
 AI 调用 get_console_logs({ deviceId: 'abc123', limit: 50 })
 返回: [日志列表...]
 
-AI 调用 execute_script({ deviceId: 'abc123', code: 'window.location.href' })
-返回: 'http://192.168.1.100:8080/home'
+AI 调用 get_network_logs({ deviceId: 'abc123', limit: 20 })
+返回: [网络请求列表...]
 ```
 
 ### 4. PC 查看页面
@@ -225,6 +236,82 @@ AI 调用 execute_script({ deviceId: 'abc123', code: 'window.location.href' })
 | Element | DOM 树查看、样式查看 |
 | Storage | localStorage/sessionStorage/cookie 查看和编辑 |
 | System | 设备信息、UA、屏幕尺寸 |
+
+## 数据存储策略
+
+### 日志存储
+
+| 配置项 | 默认值 | 说明 |
+|--------|--------|------|
+| 单设备日志上限 | 1000 条 | 超出后删除最旧的日志 |
+| 网络请求上限 | 500 条 | 超出后删除最旧的请求 |
+| 日志保留时长 | 30 分钟 | 设备断开后 30 分钟清理 |
+| 存储方式 | 内存 | 不持久化到磁盘，重启服务清空 |
+
+### 设备管理
+
+| 场景 | 处理方式 |
+|------|----------|
+| 设备断开 | 保留日志 30 分钟，标记设备为离线 |
+| 设备重连 | 根据 sessionId 识别，恢复之前的日志历史 |
+| 同一设备多标签页 | 每个标签页独立 sessionId，分别显示 |
+| 服务重启 | 所有日志清空，设备需重新连接 |
+
+### 性能保护
+
+- **限流策略**：日志上报频率限制为 100 条/秒，超出则批量合并
+- **批量上报**：高频日志合并为单条 WebSocket 消息
+- **大响应截断**：网络响应体超过 100KB 只保留前 100KB
+
+## 设备标识机制
+
+### 标识组成
+
+```
+deviceId = sessionId (UUID v4)
+```
+
+- **sessionId**：每次页面加载生成新的 UUID，存储在内存中
+- **不持久化**：刷新页面会生成新的 sessionId，视为新设备
+
+### 设备信息
+
+```typescript
+interface DeviceInfo {
+  sessionId: string;        // 设备唯一标识
+  projectId: string;        // 项目标识
+  ua: string;               // User Agent
+  screen: string;           // 屏幕尺寸 "390x844"
+  pixelRatio: number;       // 设备像素比
+  language: string;         // 语言
+  connectTime: number;      // 连接时间戳
+  lastActiveTime: number;   // 最后活跃时间
+}
+```
+
+### projectId 作用
+
+- 用于隔离不同项目的设备
+- AI 调用 `list_devices` 时可按 `projectId` 过滤
+- 不填写则所有设备归入 `default` 项目
+
+## 错误处理策略
+
+### WebSocket 连接
+
+| 场景 | 处理方式 |
+|------|----------|
+| 连接失败 | 每 3 秒重试，最多 10 次，之后提示用户 |
+| 连接断开 | 自动重连，重连成功后重新注册设备 |
+| 消息发送失败 | 缓存到本地队列，重连后重发（最多 100 条） |
+
+### 服务器端
+
+| 场景 | 处理方式 |
+|------|----------|
+| 消息格式错误 | 丢弃消息，记录错误日志 |
+| 未知消息类型 | 忽略，不做处理 |
+| 设备未注册 | 返回错误，要求先注册 |
 
 ## 通信协议
 
@@ -292,6 +379,25 @@ AI 调用 execute_script({ deviceId: 'abc123', code: 'window.location.href' })
 | 构建 | pnpm + Turborepo | Monorepo 管理 |
 | 样式 | CSS Modules / Tailwind | 参考 vConsole 风格 |
 
+### 版本要求
+
+| 依赖 | 版本 |
+|------|------|
+| Node.js | >= 18.0.0 |
+| TypeScript | >= 5.0.0 |
+| pnpm | >= 8.0.0 |
+
+### 浏览器兼容性
+
+| 浏览器 | 最低版本 |
+|--------|----------|
+| Chrome | 60+ |
+| Safari | 12+ |
+| Firefox | 60+ |
+| Edge | 79+ |
+| iOS Safari | 12+ |
+| Android Chrome | 60+ |
+
 ## 实现里程碑
 
 ### 阶段 1：MVP（核心功能）
@@ -310,7 +416,7 @@ AI 调用 execute_script({ deviceId: 'abc123', code: 'window.location.href' })
 ### 阶段 3：丰富功能
 
 - [ ] SDK：Element、Storage 数据推送
-- [ ] MCP：`get_storage`、`execute_script`
+- [ ] MCP：`get_storage`
 - [ ] PC：Element、Storage 面板
 
 ### 阶段 4：增强体验
