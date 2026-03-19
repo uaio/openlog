@@ -279,9 +279,11 @@ interface NetworkEntry {
 
 | 场景 | 处理方式 |
 |------|----------|
+| 首次访问 | 生成 deviceId，存入 localStorage |
+| 刷新页面 | 读取 localStorage 中的 deviceId，保持不变 |
+| 多标签页 | 合并为同一设备，日志通过 tabId 区分来源 |
 | 设备断开 | 保留日志 30 分钟，标记设备为离线 |
-| 设备重连 | 根据 sessionId 识别，恢复之前的日志历史 |
-| 同一设备多标签页 | 每个标签页独立 sessionId，分别显示 |
+| 设备重连 | 根据 deviceId 识别，追加日志历史 |
 | 服务重启 | 所有日志清空，设备需重新连接 |
 
 ### 性能保护
@@ -292,27 +294,55 @@ interface NetworkEntry {
 
 ## 设备标识机制
 
-### 标识组成
+### 标识生成
 
-```
-deviceId = sessionId (UUID v4)
+```typescript
+// deviceId 基于 URL（不含查询参数）生成
+deviceId = hash(window.location.origin + window.location.pathname)
+
+// 示例：
+// http://192.168.1.100:8080/home → deviceId: "a1b2c3"
+// http://192.168.1.100:8080/home?token=xxx → deviceId: "a1b2c3" (相同)
+// http://192.168.1.100:8080/about → deviceId: "x9y8z7" (不同)
 ```
 
-- **sessionId**：每次页面加载生成新的 UUID，存储在内存中
-- **不持久化**：刷新页面会生成新的 sessionId，视为新设备
+### 持久化策略
+
+| 存储 | Key | 说明 |
+|------|-----|------|
+| localStorage | `aiconsole_device_id` | 设备 ID，首次访问生成后持久化 |
+| localStorage | `aiconsole_device_info` | 设备基础信息缓存 |
+
+### 多标签页处理
+
+同一设备（相同 deviceId）打开多个标签页时：
+
+| 策略 | 说明 |
+|------|------|
+| 合并显示 | PC 页面中同一 deviceId 只显示一个设备条目 |
+| 日志来源 | 每条日志附带 `tabId`（session 级 UUID）区分来源 |
+| 连接状态 | 任一标签页活跃即显示在线 |
 
 ### 设备信息
 
 ```typescript
 interface DeviceInfo {
-  sessionId: string;        // 设备唯一标识
+  deviceId: string;         // 设备唯一标识（基于 URL 持久化）
   projectId: string;        // 项目标识
   ua: string;               // User Agent
   screen: string;           // 屏幕尺寸 "390x844"
   pixelRatio: number;       // 设备像素比
   language: string;         // 语言
-  connectTime: number;      // 连接时间戳
+  url: string;              // 当前页面地址（不含参数）
+  connectTime: number;      // 首次连接时间戳
   lastActiveTime: number;   // 最后活跃时间
+  activeTabs: number;       // 活跃标签页数量
+}
+
+interface LogEntry {
+  deviceId: string;         // 设备 ID
+  tabId: string;            // 标签页 ID（区分同一设备的多标签页）
+  // ... 其他字段
 }
 ```
 
