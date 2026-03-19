@@ -1,4 +1,5 @@
 import type { Device } from '@aiconsole/server';
+import { API_BASE_URL } from '../config';
 
 export const listDevices = {
   name: 'list_devices',
@@ -14,21 +15,16 @@ export const listDevices = {
   },
 
   async execute(args: { projectId?: string }): Promise<Device[]> {
-    try {
-      const url = args.projectId
-        ? `http://localhost:3000/api/devices?projectId=${args.projectId}`
-        : `http://localhost:3000/api/devices`;
+    const url = args.projectId
+      ? `${API_BASE_URL}/api/devices?projectId=${args.projectId}`
+      : `${API_BASE_URL}/api/devices`;
 
-      const response = await fetch(url);
+    const response = await fetch(url);
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Failed to fetch devices:', error);
-      return [];
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
+
+    return await response.json();
   }
 };
