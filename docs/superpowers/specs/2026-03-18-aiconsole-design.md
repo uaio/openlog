@@ -115,6 +115,46 @@ new VConsole({
 });
 ```
 
+#### 监控开关
+
+SDK 支持动态开关远程监控功能：
+
+```typescript
+const vconsole = new VConsole({ projectId: 'my-app' });
+
+// 关闭远程监控（停止推送，只保留本地 vConsole）
+vconsole.disableRemote();
+
+// 开启远程监控
+vconsole.enableRemote();
+
+// 查询当前状态
+vconsole.isRemoteEnabled();  // true / false
+```
+
+**UI 开关：**
+
+在移动端 SDK 面板的 System 标签页中，提供一个开关按钮：
+
+```
+┌─────────────────────────┐
+│ System                  │
+├─────────────────────────┤
+│ Device: iPhone 14       │
+│ OS: iOS 17.2            │
+│ ...                     │
+├─────────────────────────┤
+│ 远程监控: [ON/OFF]       │  ← 开关按钮
+└─────────────────────────┘
+```
+
+**开关状态持久化：**
+
+| 状态 | 存储位置 | 说明 |
+|------|----------|------|
+| 用户手动关闭 | localStorage | 下次访问保持关闭状态 |
+| 默认值 | - | 开启（首次访问） |
+
 #### server 参数自动检测逻辑
 
 当 `server` 参数未指定时，SDK 按以下顺序尝试连接：
