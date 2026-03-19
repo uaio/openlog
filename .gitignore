@@ -5,3 +5,22 @@ dist
 *.log
 .env
 .env.*
+
+# TypeScript
+*.tsbuildinfo
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+
+# Testing
+coverage/
+.nyc_output/
+
+# Build artifacts
+*.tgz
