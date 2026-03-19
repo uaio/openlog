@@ -8,7 +8,16 @@ export default defineConfig({
       name: 'AIConsole',
       formats: ['es', 'cjs'],
       fileName: (format) => `index.${format === 'es' ? 'js' : 'cjs'}`
+    },
+    rollupOptions: {
+      input: {
+        index: './src/index.ts'
+      }
     }
   },
-  plugins: [dts()]
+  plugins: [dts()],
+  test: {
+    include: ['**/test/**/*.{test,spec}.{js,ts}'],
+    exclude: ['**/node_modules/**', '**/dist/**']
+  }
 });
