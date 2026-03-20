@@ -50,6 +50,30 @@ export function createDeviceRoutes(deviceStore: DeviceStore, logStore: LogStore)
       }
 
       res.json(device);
+    },
+
+    deleteLogs: (req: Request, res: Response) => {
+      const { deviceId } = req.params;
+
+      // 检查设备是否存在
+      const device = deviceStore.get(deviceId);
+      if (!device) {
+        return res.status(404).json({ error: 'Device not found' });
+      }
+
+      // 获取删除前的日志数量
+      const logsBefore = logStore.get(deviceId);
+      const count = logsBefore ? logsBefore.length : 0;
+
+      // 清除日志
+      logStore.clear(deviceId);
+
+      console.log(`[Server] 已清除设备 ${deviceId} 的 ${count} 条日志`);
+
+      res.json({
+        success: true,
+        count
+      });
     }
   };
 }

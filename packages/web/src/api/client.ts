@@ -63,6 +63,14 @@ export const api = {
     const url = `${API_BASE}/devices/${deviceId}`;
     const res = await fetch(url);
     return handleResponse(res, url);
+  },
+
+  async deleteLogs(deviceId: string): Promise<{ success: boolean; count: number }> {
+    const url = `${API_BASE}/devices/${deviceId}/logs`;
+    const res = await fetch(url, {
+      method: 'DELETE'
+    });
+    return handleResponse(res, url);
   }
 };
 

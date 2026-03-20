@@ -9,6 +9,7 @@ export function createRoutes(deviceStore: DeviceStore, logStore: LogStore): Rout
   router.get('/api/devices', deviceRoutes.listDevices);
   router.get('/api/devices/:deviceId', deviceRoutes.getDevice);
   router.get('/api/devices/:deviceId/logs', deviceRoutes.getLogs);
+  router.delete('/api/devices/:deviceId/logs', deviceRoutes.deleteLogs);
 
   return router;
 }
