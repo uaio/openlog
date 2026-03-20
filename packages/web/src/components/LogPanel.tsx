@@ -12,6 +12,11 @@ export function LogPanel({ deviceId, maxHeight = 400 }: LogPanelProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const prevLogsLengthRef = useRef(0);
 
+  // 调试：监控 logs 变化
+  useEffect(() => {
+    console.log('[LogPanel] logs 数量变化:', logs.length, 'deviceId:', deviceId);
+  }, [logs, deviceId]);
+
   // 自动滚动到底部
   useEffect(() => {
     if (logs.length > prevLogsLengthRef.current && containerRef.current) {

@@ -39,7 +39,9 @@ export function useLogs(deviceId?: string, maxLogs = 500) {
     setLogs(prevLogs => {
       const newLogs = [...prevLogs, ...logBufferRef.current];
       // 限制日志数量，避免内存溢出
-      return newLogs.slice(-maxLogs);
+      const result = newLogs.slice(-maxLogs);
+      console.log('[useLogs] 更新 logs 状态，从', prevLogs.length, '条变为', result.length, '条');
+      return result;
     });
 
     logBufferRef.current = [];
