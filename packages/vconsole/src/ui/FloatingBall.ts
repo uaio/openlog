@@ -32,6 +32,7 @@ export class FloatingBall {
   private clickDetector: ClickDetector;
   private dragHandler: DragHandler;
   private position = { x: 0, y: 0 };
+  private hasMoved = false; // 追踪是否真的发生了拖动
 
   constructor(private readonly options: FloatingBallOptions = {}) {
     // 创建 DOM 元素
@@ -93,6 +94,7 @@ export class FloatingBall {
    */
   private handleDragStart(): void {
     this.state = 'dragging';
+    this.hasMoved = false; // 重置移动标志
     this.element.classList.add('dragging');
     this.element.classList.remove(`snapped-${this.snappedSide}`);
     this.snappedSide = null;
@@ -102,6 +104,7 @@ export class FloatingBall {
    * 处理拖拽移动
    */
   private handleDragMove(x: number, y: number): void {
+    this.hasMoved = true; // 标记已移动
     // 更新位置，使球心跟随鼠标/手指
     const size = this.options.size ?? 44;
     this.setPosition(x - size / 2, y - size / 2);
@@ -119,14 +122,19 @@ export class FloatingBall {
     } else {
       this.state = 'normal';
     }
+
+    // 延迟重置移动标志，确保 click 事件能读取到正确的值
+    setTimeout(() => {
+      this.hasMoved = false;
+    }, 0);
   }
 
   /**
    * 处理点击
    */
   private handleClick(): void {
-    if (this.state === 'dragging') {
-      // 拖动过程中不处理点击
+    // 如果发生了拖动，不处理点击
+    if (this.hasMoved) {
       return;
     }
 
