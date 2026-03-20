@@ -154,17 +154,11 @@
   </div>
 
   <script type="module">
-    // 动态导入 SDK
-    const script = document.createElement('script');
-    script.type = 'module';
-    script.src = './packages/vconsole/dist/index.js';
-    script.onload = () => {
-      initAIConsole();
-    };
-    script.onerror = () => {
-      updateStatus('❌ SDK 加载失败，请确认已运行 pnpm build');
-    };
-    document.head.appendChild(script);
+    // 导入 SDK
+    import AIConsole from './packages/vconsole/dist/index.js';
+
+    // SDK 加载完成后初始化
+    initAIConsole();
 
     function updateStatus(message) {
       const statusEl = document.getElementById('status-content');
@@ -187,7 +181,6 @@
 
     function initAIConsole() {
       try {
-        const AIConsole = window.AIConsole;
         const aiconsole = new AIConsole({
           projectId: 'test-demo',
           server: 'ws://localhost:3000'
