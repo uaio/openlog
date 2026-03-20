@@ -37,7 +37,7 @@
 
 /* 吸附到左侧 - 球体在左边，裁掉左半边显示右半边 */
 .floating-ball.snapped-left {
-  left: 0 !important;
+  left: 0;
   top: 50% !important;
   transform: translateY(-50%);
   clip-path: inset(0 0 0 50%);
@@ -46,7 +46,7 @@
 
 /* 吸附到右侧 - 球体在右边，裁掉右半边显示左半边 */
 .floating-ball.snapped-right {
-  right: 0 !important;
+  right: 0;
   top: 50% !important;
   transform: translateY(-50%);
   clip-path: inset(0 50% 0 0);
