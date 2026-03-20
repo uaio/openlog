@@ -4,15 +4,19 @@ import type { Device } from '../types/index.js';
 interface DeviceListProps {
   projectId?: string;
   onSelectDevice?: (device: Device) => void;
+  selectedDeviceId?: string;
 }
 
-export function DeviceList({ projectId, onSelectDevice }: DeviceListProps) {
+export function DeviceList({ projectId, onSelectDevice, selectedDeviceId }: DeviceListProps) {
   const { devices, loading, selectedId, setSelectedId } = useDevices(projectId);
 
   const handleSelect = (device: Device) => {
     setSelectedId(device.deviceId);
     onSelectDevice?.(device);
   };
+
+  // 使用外部传入的 selectedDeviceId（如果提供）
+  const currentSelectedId = selectedDeviceId !== undefined ? selectedDeviceId : selectedId;
 
   if (loading) {
     return (
@@ -40,7 +44,7 @@ export function DeviceList({ projectId, onSelectDevice }: DeviceListProps) {
               onClick={() => handleSelect(device)}
               style={{
                 ...styles.deviceItem,
-                ...(selectedId === device.deviceId ? styles.selected : {}),
+                ...(currentSelectedId === device.deviceId ? styles.selected : {}),
                 ...(device.online ? styles.online : styles.offline)
               }}
             >

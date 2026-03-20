@@ -1,15 +1,49 @@
 import { useState } from 'react';
 import { DeviceList } from './components/DeviceList.js';
 import { LogPanel } from './components/LogPanel.js';
+import { NetworkPanel } from './components/NetworkPanel.js';
+import { SettingsPanel } from './components/SettingsPanel.js';
+import { Tabs, type Tab } from './components/Tabs.js';
 import type { Device } from './types/index.js';
 import './styles/global.css';
 
 function App() {
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
+  const [activeTab, setActiveTab] = useState('console');
 
   const handleSelectDevice = (device: Device) => {
     setSelectedDevice(device);
   };
+
+  const tabs: Tab[] = [
+    {
+      id: 'console',
+      label: '控制台',
+      icon: '📝',
+      content: selectedDevice ? (
+        <LogPanel deviceId={selectedDevice.deviceId} />
+      ) : (
+        <div style={styles.placeholder}>
+          <div style={styles.placeholderIcon}>📱</div>
+          <div style={styles.placeholderText}>
+            从左侧选择一个设备开始调试
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'network',
+      label: '网络',
+      icon: '🌐',
+      content: <NetworkPanel deviceId={selectedDevice?.deviceId} />
+    },
+    {
+      id: 'settings',
+      label: '设置',
+      icon: '⚙️',
+      content: <SettingsPanel deviceId={selectedDevice?.deviceId} />
+    }
+  ];
 
   return (
     <div style={styles.container}>
@@ -17,7 +51,7 @@ function App() {
         <h1 style={styles.title}>AIConsole Web Viewer</h1>
         <p style={styles.subtitle}>
           {selectedDevice
-            ? `当前设备: ${selectedDevice.ua}`
+            ? `当前设备: ${selectedDevice.ua.slice(0, 50)}${selectedDevice.ua.length > 50 ? '...' : ''}`
             : '请选择一个设备查看日志'
           }
         </p>
@@ -27,20 +61,12 @@ function App() {
         <div style={styles.sidebar}>
           <DeviceList
             onSelectDevice={handleSelectDevice}
+            selectedDeviceId={selectedDevice?.deviceId}
           />
         </div>
 
         <div style={styles.main}>
-          {selectedDevice ? (
-            <LogPanel deviceId={selectedDevice.deviceId} />
-          ) : (
-            <div style={styles.placeholder}>
-              <div style={styles.placeholderIcon}>📱</div>
-              <div style={styles.placeholderText}>
-                从左侧选择一个设备开始调试
-              </div>
-            </div>
-          )}
+          <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
         </div>
       </div>
     </div>
