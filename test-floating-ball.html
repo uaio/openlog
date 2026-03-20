@@ -85,7 +85,7 @@
   </div>
 
   <div class="vconsole-panel" id="panel">
-    <button class="close-btn" onclick="togglePanel()">关闭</button>
+    <button class="close-btn" id="closeBtn">关闭</button>
     <h2>VConsole 面板</h2>
     <p>这是模拟的 vconsole 调试面板。</p>
     <div id="logs"></div>
@@ -97,9 +97,11 @@
 
     const panel = document.getElementById('panel');
     const logs = document.getElementById('logs');
+    const closeBtn = document.getElementById('closeBtn');
     let isPanelShown = false;
 
-    function togglePanel() {
+    // 将函数暴露到全局作用域
+    window.togglePanel = function() {
       isPanelShown = !isPanelShown;
       panel.classList.toggle('show', isPanelShown);
 
@@ -108,7 +110,10 @@
       } else {
         addLog('面板已关闭');
       }
-    }
+    };
+
+    // 绑定关闭按钮
+    closeBtn.addEventListener('click', window.togglePanel);
 
     function addLog(message) {
       const time = new Date().toLocaleTimeString();
@@ -119,7 +124,7 @@
     const ball = new FloatingBall({
       onActivate: () => {
         addLog('悬浮球被激活');
-        togglePanel();
+        window.togglePanel();
       }
     });
 
