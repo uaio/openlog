@@ -1,10 +1,42 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useWebSocket } from './useWebSocket.js';
+import { api } from '../api/client.js';
 import type { ConsoleLog } from '../types/index.js';
 
 export function useLogs(deviceId?: string, maxLogs = 500) {
   const [logs, setLogs] = useState<ConsoleLog[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
   const logBufferRef = useRef<ConsoleLog[]>([]);
+  const lastFetchCountRef = useRef(0);
+
+  // 当 deviceId 变化时，加载历史日志
+  useEffect(() => {
+    if (!deviceId) {
+      setLogs([]);
+      setHasMore(false);
+      return;
+    }
+
+    const loadHistoricalLogs = async () => {
+      console.log('[useLogs] 加载设备历史日志:', deviceId);
+      setLoading(true);
+
+      try {
+        const historicalLogs = await api.getLogs(deviceId, maxLogs);
+        console.log('[useLogs] 历史日志加载完成，数量:', historicalLogs.length);
+        setLogs(historicalLogs);
+        setHasMore(historicalLogs.length >= maxLogs);
+        lastFetchCountRef.current = historicalLogs.length;
+      } catch (error) {
+        console.error('[useLogs] 加载历史日志失败:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadHistoricalLogs();
+  }, [deviceId, maxLogs]);
 
   const handleWebSocketMessage = useCallback((message: any) => {
     console.log('[useLogs] 收到消息:', message.type, message.data);
@@ -65,6 +97,8 @@ export function useLogs(deviceId?: string, maxLogs = 500) {
 
   return {
     logs,
-    clearLogs
+    clearLogs,
+    loading,
+    hasMore
   };
 }

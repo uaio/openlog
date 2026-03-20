@@ -7,7 +7,7 @@ interface LogPanelProps {
 }
 
 export function LogPanel({ deviceId }: LogPanelProps) {
-  const { logs, clearLogs } = useLogs(deviceId);
+  const { logs, clearLogs, loading } = useLogs(deviceId);
   const containerRef = useRef<HTMLDivElement>(null);
   const prevLogsLengthRef = useRef(0);
 
@@ -31,8 +31,15 @@ export function LogPanel({ deviceId }: LogPanelProps) {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <div style={styles.title}>
-          控制台日志 ({logs.length})
+        <div style={styles.titleSection}>
+          <div style={styles.title}>
+            控制台日志 {loading && <span style={styles.loadingText}> (加载中...)</span>}
+          </div>
+          {!loading && logs.length > 0 && (
+            <div style={styles.hint}>
+              已加载 {logs.length} 条历史日志
+            </div>
+          )}
         </div>
         <button
           onClick={handleClear}
@@ -54,9 +61,20 @@ export function LogPanel({ deviceId }: LogPanelProps) {
         ref={containerRef}
         style={styles.logContainer}
       >
-        {logs.length === 0 ? (
+        {loading ? (
           <div style={styles.empty}>
-            暂无日志
+            <div style={styles.loadingIcon}>⏳</div>
+            <div>正在加载历史日志...</div>
+          </div>
+        ) : logs.length === 0 ? (
+          <div style={styles.empty}>
+            <div style={styles.emptyIcon}>📝</div>
+            <div style={styles.emptyText}>
+              暂无日志
+            </div>
+            <div style={styles.emptyHint}>
+              在移动设备上执行操作后，日志将自动显示在这里
+            </div>
           </div>
         ) : (
           logs.map((log, index) => (
@@ -86,10 +104,24 @@ const styles = {
     borderBottom: '1px solid #e0e0e0',
     backgroundColor: '#fafafa'
   },
+  titleSection: {
+    display: 'flex',
+    flexDirection: 'column' as const
+  },
   title: {
     fontSize: '14px',
     fontWeight: 'bold',
     color: '#333'
+  },
+  loadingText: {
+    fontSize: '12px',
+    color: '#999',
+    fontWeight: 'normal' as const
+  },
+  hint: {
+    fontSize: '11px',
+    color: '#999',
+    marginTop: '2px'
   },
   clearButton: {
     padding: '4px 12px',
@@ -108,10 +140,30 @@ const styles = {
   },
   empty: {
     display: 'flex',
+    flexDirection: 'column' as const,
     alignItems: 'center',
     justifyContent: 'center',
     height: '100%',
     color: '#999',
     fontSize: '14px'
+  },
+  loadingIcon: {
+    fontSize: '32px',
+    marginBottom: '12px'
+  },
+  emptyIcon: {
+    fontSize: '48px',
+    marginBottom: '12px',
+    opacity: 0.5
+  },
+  emptyText: {
+    fontSize: '14px',
+    marginBottom: '8px'
+  },
+  emptyHint: {
+    fontSize: '12px',
+    color: '#bbb',
+    textAlign: 'center' as const,
+    maxWidth: '300px'
   }
 };
