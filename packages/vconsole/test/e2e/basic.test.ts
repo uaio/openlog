@@ -43,11 +43,11 @@ vi.stubGlobal('navigator', mockNavigator);
 vi.stubGlobal('localStorage', mockLocalStorage);
 
 describe('AIConsole E2E', () => {
-  let console: AIConsole;
-  let originalLog: typeof console.log;
-  let originalWarn: typeof console.warn;
-  let originalError: typeof console.error;
-  let originalInfo: typeof console.info;
+  let aiconsole: AIConsole;
+  let originalLog: typeof globalThis.console.log;
+  let originalWarn: typeof globalThis.console.warn;
+  let originalError: typeof globalThis.console.error;
+  let originalInfo: typeof globalThis.console.info;
 
   beforeEach(() => {
     // Clear localStorage
@@ -64,8 +64,8 @@ describe('AIConsole E2E', () => {
 
   afterEach(() => {
     // Destroy console instance
-    if (console) {
-      console.destroy();
+    if (aiconsole) {
+      aiconsole.destroy();
     }
 
     // Restore console methods
@@ -79,18 +79,18 @@ describe('AIConsole E2E', () => {
 
   describe('Initialization', () => {
     it('should initialize with required projectId', () => {
-      console = new AIConsole({
+      aiconsole = new AIConsole({
         projectId: 'test-project',
         server: 'ws://localhost:8080'
       });
 
-      expect(console).toBeDefined();
-      expect(console.isRemoteEnabled()).toBe(true);
+      expect(aiconsole).toBeDefined();
+      expect(aiconsole.isRemoteEnabled()).toBe(true);
     });
 
     it('should throw error without projectId', () => {
       expect(() => {
-        console = new AIConsole({
+        aiconsole = new AIConsole({
           server: 'ws://localhost:8080'
         } as any);
       }).toThrow('projectId is required');
@@ -99,7 +99,7 @@ describe('AIConsole E2E', () => {
     it('should warn when multiple instances detected', () => {
       const warnSpy = vi.spyOn(globalThis.console, 'warn');
 
-      console = new AIConsole({
+      aiconsole = new AIConsole({
         projectId: 'test-project',
         server: 'ws://localhost:8080'
       });
@@ -120,7 +120,7 @@ describe('AIConsole E2E', () => {
 
   describe('Console Interception', () => {
     beforeEach(() => {
-      console = new AIConsole({
+      aiconsole = new AIConsole({
         projectId: 'test-project',
         server: 'ws://localhost:8080'
       });
@@ -191,26 +191,26 @@ describe('AIConsole E2E', () => {
 
   describe('Remote Control', () => {
     beforeEach(() => {
-      console = new AIConsole({
+      aiconsole = new AIConsole({
         projectId: 'test-project',
         server: 'ws://localhost:8080'
       });
     });
 
     it('should disable remote monitoring', () => {
-      console.disableRemote();
+      aiconsole.disableRemote();
 
-      expect(console.isRemoteEnabled()).toBe(false);
+      expect(aiconsole.isRemoteEnabled()).toBe(false);
       expect(mockLocalStorage.getItem('aiconsole_remote_test-project')).toBe('false');
     });
 
     it('should enable remote monitoring', () => {
-      console.disableRemote();
-      expect(console.isRemoteEnabled()).toBe(false);
+      aiconsole.disableRemote();
+      expect(aiconsole.isRemoteEnabled()).toBe(false);
 
-      console.enableRemote();
+      aiconsole.enableRemote();
 
-      expect(console.isRemoteEnabled()).toBe(true);
+      expect(aiconsole.isRemoteEnabled()).toBe(true);
     });
 
     it('should respect localStorage preference on init', () => {
@@ -236,7 +236,7 @@ describe('AIConsole E2E', () => {
 
   describe('Lifecycle', () => {
     it('should cleanup resources on destroy', () => {
-      console = new AIConsole({
+      aiconsole = new AIConsole({
         projectId: 'test-project',
         server: 'ws://localhost:8080'
       });
@@ -244,7 +244,7 @@ describe('AIConsole E2E', () => {
       // Call some console methods to ensure interception is active
       globalThis.console.log('Before destroy');
 
-      console.destroy();
+      aiconsole.destroy();
 
       // After destroy, console methods should be restored to original
       // Verify we can call console methods without errors
@@ -254,14 +254,14 @@ describe('AIConsole E2E', () => {
     });
 
     it('should handle multiple destroy calls safely', () => {
-      console = new AIConsole({
+      aiconsole = new AIConsole({
         projectId: 'test-project',
         server: 'ws://localhost:8080'
       });
 
       expect(() => {
-        console.destroy();
-        console.destroy(); // Second destroy should be safe
+        aiconsole.destroy();
+        aiconsole.destroy(); // Second destroy should be safe
       }).not.toThrow();
     });
   });
@@ -294,7 +294,7 @@ describe('AIConsole E2E', () => {
 
   describe('Error Handling', () => {
     it('should not throw when reporter fails', () => {
-      console = new AIConsole({
+      aiconsole = new AIConsole({
         projectId: 'test-project',
         server: 'ws://localhost:8080'
       });
@@ -306,7 +306,7 @@ describe('AIConsole E2E', () => {
     });
 
     it('should handle malformed arguments gracefully', () => {
-      console = new AIConsole({
+      aiconsole = new AIConsole({
         projectId: 'test-project',
         server: 'ws://localhost:8080'
       });

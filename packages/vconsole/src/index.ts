@@ -1,11 +1,7 @@
+import eruda from 'eruda';
 import { getDeviceInfo, generateTabId, updateDeviceActiveTime } from './core/device.js';
 import { Reporter } from './transport/reporter.js';
-import type { RemoteConfig } from './types/index.js';
-import { FloatingBall } from './ui/index.js';
-
-// 导出 FloatingBall 供外部使用
-export { FloatingBall };
-export type { FloatingBallOptions, BallState } from './ui/index.js';
+import type { RemoteConfig, ErudaConfig } from './types/index.js';
 
 export const version = '0.1.0';
 
@@ -26,6 +22,8 @@ export interface AIConsoleOptions extends RemoteConfig {
   defaultPlugins?: string[];
   /** 心跳间隔（毫秒），默认 30000 */
   heartbeatInterval?: number;
+  /** Eruda 调试面板配置 */
+  eruda?: ErudaConfig;
 }
 
 /** 将参数序列化为字符串，正确处理对象 */
@@ -72,6 +70,7 @@ export class AIConsole {
   private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
   private heartbeatIntervalMs: number;
   private originalConsole: OriginalConsole | null = null;
+  private erudaInitialized = false;
 
   constructor(options: AIConsoleOptions) {
     if (!options.projectId) {
@@ -108,6 +107,21 @@ export class AIConsole {
       updateDeviceActiveTime(this.projectId);
       this.reporter.updateDeviceInfo();
     }, this.heartbeatIntervalMs);
+
+    // 初始化 Eruda 调试面板（默认启用）
+    if (options.eruda?.enabled !== false) {
+      this.initEruda(options.eruda);
+    }
+  }
+
+  private initEruda(config?: ErudaConfig): void {
+    eruda.init({
+      tool: config?.tool,
+      autoScale: config?.autoScale ?? true,
+      useShadowDom: true,
+      defaults: config?.defaults
+    });
+    this.erudaInitialized = true;
   }
 
   private interceptConsole(): void {
@@ -190,6 +204,12 @@ export class AIConsole {
     // 清除全局实例标记
     if ((globalThis as Record<symbol, unknown>)[AICONSOLE_INSTANCE_KEY] === this) {
       delete (globalThis as Record<symbol, unknown>)[AICONSOLE_INSTANCE_KEY];
+    }
+
+    // 销毁 Eruda
+    if (this.erudaInitialized) {
+      eruda.destroy();
+      this.erudaInitialized = false;
     }
 
     this.reporter.disconnect();

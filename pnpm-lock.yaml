@@ -58,6 +58,9 @@ importers:
 
   packages/vconsole:
     devDependencies:
+      eruda:
+        specifier: ^3.4.3
+        version: 3.4.3
       vite:
         specifier: ^5.0.0
         version: 5.4.21(@types/node@20.19.37)
@@ -802,6 +805,9 @@ packages:
   entities@7.0.1:
     resolution: {integrity: sha512-TWrgLOFUQTH994YUyl1yT4uyavY5nNB5muff+RtWaqNVCAK408b5ZnnbNAUEWLTCpum9w6arT70i1XdQ4UeOPA==}
     engines: {node: '>=0.12'}
+
+  eruda@3.4.3:
+    resolution: {integrity: sha512-J2TsF4dXSspOXev5bJ6mljv0dRrxj21wklrDzbvPmYaEmVoC+2psylyRi70nUPFh1mTQfIBsSusUtAMZtUN+/w==}
 
   es-define-property@1.0.1:
     resolution: {integrity: sha512-e3nRfgfUZ4rNGL232gUgX06QNyyez04KdjFrF+LTRoOXmrOgFKDg4BCdsjW8EnT69eqdYGmRpJwiPVYNrCaW3g==}
@@ -2248,6 +2254,8 @@ snapshots:
   encodeurl@2.0.0: {}
 
   entities@7.0.1: {}
+
+  eruda@3.4.3: {}
 
   es-define-property@1.0.1: {}
 

@@ -183,15 +183,21 @@
       try {
         const aiconsole = new AIConsole({
           projectId: 'test-demo',
-          server: 'ws://localhost:3000'
+          server: 'ws://localhost:3000',
+          eruda: {
+            defaults: {
+              displaySize: 50,
+              transparency: 0.9
+            }
+          }
         });
 
         window.aiconsole = aiconsole;
-        updateStatus('✅ AIConsole 已初始化，等待连接到服务器...');
+        updateStatus('✅ AIConsole 已初始化（含 Eruda 调试面板）');
 
         // 监听连接状态（如果需要的话）
         setTimeout(() => {
-          updateStatus('✅ AIConsole 运行中，点击下方按钮测试功能');
+          updateStatus('✅ AIConsole 运行中，点击右下角悬浮球打开调试面板');
         }, 1000);
       } catch (error) {
         updateStatus(`❌ 初始化失败: ${error.message}`);
