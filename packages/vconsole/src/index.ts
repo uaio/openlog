@@ -1,7 +1,14 @@
-import eruda from 'eruda';
 import { getDeviceInfo, generateTabId, updateDeviceActiveTime } from './core/device.js';
 import { Reporter } from './transport/reporter.js';
 import type { RemoteConfig, ErudaConfig } from './types/index.js';
+
+// Eruda 类型声明
+interface Eruda {
+  init: (options?: ErudaConfig) => void;
+  destroy: () => void;
+  show: () => void;
+  hide: () => void;
+}
 
 export const version = '0.1.0';
 
@@ -71,6 +78,7 @@ export class AIConsole {
   private heartbeatIntervalMs: number;
   private originalConsole: OriginalConsole | null = null;
   private erudaInitialized = false;
+  private eruda: Eruda | null = null;
 
   constructor(options: AIConsoleOptions) {
     if (!options.projectId) {
@@ -114,14 +122,27 @@ export class AIConsole {
     }
   }
 
-  private initEruda(config?: ErudaConfig): void {
-    eruda.init({
-      tool: config?.tool,
-      autoScale: config?.autoScale ?? true,
-      useShadowDom: true,
-      defaults: config?.defaults
-    });
-    this.erudaInitialized = true;
+  private async initEruda(config?: ErudaConfig): Promise<void> {
+    try {
+      // 动态导入 eruda UMD 模块
+      const erudaModule = await import('eruda');
+      // @ts-ignore - eruda is UMD module, default export is the eruda object
+      this.eruda = erudaModule.default || erudaModule;
+
+      if (this.eruda && typeof this.eruda.init === 'function') {
+        this.eruda.init({
+          tool: config?.tool,
+          autoScale: config?.autoScale ?? true,
+          useShadowDom: true,
+          defaults: config?.defaults
+        });
+        this.erudaInitialized = true;
+      } else {
+        console.warn('AIConsole: Eruda 初始化失败 - 无效的 eruda 模块');
+      }
+    } catch (error) {
+      console.warn('AIConsole: Eruda 加载失败', error);
+    }
   }
 
   private interceptConsole(): void {
@@ -207,9 +228,10 @@ export class AIConsole {
     }
 
     // 销毁 Eruda
-    if (this.erudaInitialized) {
-      eruda.destroy();
+    if (this.erudaInitialized && this.eruda) {
+      this.eruda.destroy();
       this.erudaInitialized = false;
+      this.eruda = null;
     }
 
     this.reporter.disconnect();

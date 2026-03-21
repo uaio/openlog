@@ -3,7 +3,13 @@ import dts from 'vite-plugin-dts';
 import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 
 export default defineConfig({
+  optimizeDeps: {
+    include: ['eruda']
+  },
   build: {
+    commonjsOptions: {
+      transformMixedEsModules: true
+    },
     lib: {
       entry: './src/index.ts',
       name: 'AIConsole',
