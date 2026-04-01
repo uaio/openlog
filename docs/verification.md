@@ -162,7 +162,7 @@ AIConsole server running!
     // 动态导入 SDK
     const script = document.createElement('script');
     script.type = 'module';
-    script.src = './packages/vconsole/dist/index.js';
+    script.src = './packages/sdk/dist/index.js';
     script.onload = () => {
       initAIConsole();
     };
@@ -612,7 +612,7 @@ pnpm --filter vconsole test --coverage
 
 **排查步骤：**
 1. 确认已运行 `pnpm build`
-2. 检查 SDK 构建产物是否存在：`ls packages/vconsole/dist/`
+2. 检查 SDK 构建产物是否存在：`ls packages/sdk/dist/`
 3. 尝试清除浏览器缓存
 4. 使用 HTTP 服务器访问（不是 file://）
 

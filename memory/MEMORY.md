@@ -22,7 +22,7 @@
 2. **查看任务状态**，阅读 `memory/TASK_STATUS.md` 了解当前工作进度
 3. **查看具体设计**，阅读 `docs/superpowers/specs/` 中的设计文档
 4. **查看实现计划**，阅读 `docs/superpowers/plans/` 中的实现计划
-5. **查看测试页面**，打开 `packages/vconsole/test/test-floating-ball.html` 进行功能测试
+5. **查看测试页面**，打开 `packages/sdk/test/test-demo.html` 进行功能测试
 
 ## 更新指南
 

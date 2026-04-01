@@ -36,7 +36,7 @@
 #### Task 4: 创建 VConsole 包骨架 ✅
 - **状态**: completed
 - **提交**: `d6e19b5`
-- **产出**: `packages/vconsole/` 基础结构
+- **产出**: `packages/sdk/` 基础结构
 
 #### Task 5: 创建 Web 包骨架 ✅
 - **状态**: completed
@@ -47,18 +47,18 @@
 - **状态**: completed
 - **提交**: `00e4ffb` → 代码质量修复
 - **文件**:
-  - `packages/vconsole/src/types/index.ts`
-  - `packages/vconsole/src/core/device.ts`
-  - `packages/vconsole/src/core/device.test.ts`
+  - `packages/sdk/src/types/index.ts`
+  - `packages/sdk/src/core/device.ts`
+  - `packages/sdk/src/core/device.test.ts`
 - **测试**: 4/4 通过
 
 #### Task 7: WebSocket Transport 模块 ✅
 - **状态**: completed
 - **提交**: `ba6024a` → 代码质量修复
 - **文件**:
-  - `packages/vconsole/src/transport/websocket.ts`
-  - `packages/vconsole/src/transport/reporter.ts`
-  - `packages/vconsole/src/transport/index.ts`
+  - `packages/sdk/src/transport/websocket.ts`
+  - `packages/sdk/src/transport/reporter.ts`
+  - `packages/sdk/src/transport/index.ts`
 - **关键修复**:
   - 添加 shouldReconnect 标志
   - 添加 try-catch 错误处理
@@ -66,7 +66,7 @@
 #### Task 8: SDK 入口与初始化 ✅
 - **状态**: completed
 - **提交**: `2db5a6a` → 代码质量修复
-- **文件**: `packages/vconsole/src/index.ts`
+- **文件**: `packages/sdk/src/index.ts`
 - **关键修复**:
   - 内存泄漏：保存并恢复原始 console
   - 类型安全：any[] → unknown[]
@@ -204,7 +204,7 @@
 #### Task 20: 端到端测试 ✅
 - **状态**: completed
 - **提交**: `ed880f2`
-- **文件**: `packages/vconsole/test/e2e/basic.test.ts`
+- **文件**: `packages/sdk/test/e2e/basic.test.ts`
 - **测试覆盖**: 27 个测试用例，全部通过
   - 初始化测试
   - Console 拦截测试
@@ -218,7 +218,7 @@
 - **提交**: `42402d6`
 - **文件**:
   - `README.md` (根目录)
-  - `packages/vconsole/README.md`
+  - `packages/sdk/README.md`
 
 ---
 

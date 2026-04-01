@@ -19,7 +19,7 @@ type: project
 ### ✅ 已完成功能
 
 #### VConsole 悬浮球模块
-**位置**: `packages/vconsole/src/ui/`
+**位置**: `packages/sdk/src/ui/`
 
 **核心组件**:
 - `FloatingBall.ts` - 悬浮球主组件，管理状态和生命周期
@@ -37,8 +37,8 @@ type: project
 7. 拖拽防误触 - 拖拽期间禁用点击事件
 
 **测试页面**:
-- `packages/vconsole/test/test-floating-ball.html` - 悬浮球功能测试（规范化界面）
-- `packages/vconsole/test/test-demo.html` - AIConsole 整体功能测试
+- `packages/sdk/test/test-floating-ball.html` - 悬浮球功能测试（规范化界面）
+- `packages/sdk/test/test-demo.html` - AIConsole 整体功能测试
 
 #### Web 模块日志显示
 **位置**: `packages/web/src/hooks/useLogs.ts`
@@ -87,7 +87,7 @@ type: project
 
 **分支**: main
 **领先**: origin/main 17 commits
-**工作目录**: `/Users/anan/github/aiconsole/packages/vconsole`
+**工作目录**: `/Users/anan/github/aiconsole/packages/sdk`
 
 **未提交变更**:
 ```diff
@@ -95,8 +95,8 @@ package.json:
 + vite-plugin-css-injected-by-js (devDependency)
 
 文件移动:
-test-floating-ball.html → packages/vconsole/test/
-test-demo.html → packages/vconsole/test/
+test-floating-ball.html → packages/sdk/test/
+test-demo.html → packages/sdk/test/
 ```
 
 ## 📝 设计文档

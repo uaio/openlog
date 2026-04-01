@@ -69,7 +69,7 @@ AIConsole 是一个让 AI 实时查看移动端调试信息的工具，基于 vC
 ```
 aiconsole/
 ├── packages/
-│   ├── vconsole/          # SDK 包
+│   ├── sdk/               # SDK 包
 │   │   ├── src/
 │   │   │   ├── core/      # 设备 ID 生成
 │   │   │   ├── transport/ # WebSocket + Reporter
@@ -218,7 +218,7 @@ pnpm start
 ### npm 包发布
 ```bash
 # 发布 SDK
-cd packages/vconsole
+cd packages/sdk
 npm publish --access public
 
 # 发布 CLI

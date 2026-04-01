@@ -83,7 +83,7 @@ AIConsole server running!
   <button onclick="testObject()">测试对象</button>
 
   <script type="module">
-    import AIConsole from '../packages/vconsole/dist/index.js';
+    import AIConsole from '../packages/sdk/dist/index.js';
 
     // 初始化 AIConsole
     const aiconsole = new AIConsole({

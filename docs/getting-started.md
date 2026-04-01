@@ -75,7 +75,7 @@ AIConsole server running!
 ```
 AIConsole/
 ├── packages/
-│   ├── vconsole/    # SDK 包（拦截 console）
+│   ├── sdk/         # SDK 包（拦截 console）
 │   ├── server/      # 服务器包（WebSocket + HTTP API）
 │   ├── mcp/         # MCP 服务器包（AI 工具集成）
 │   └── web/         # PC 查看页面包（React）

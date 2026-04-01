@@ -41,7 +41,7 @@ pnpm start
 
 ```html
 <script type="module">
-  import AIConsole from './packages/vconsole/dist/index.js';
+  import AIConsole from './packages/sdk/dist/index.js';
 
   new AIConsole({
     projectId: 'my-app',
@@ -74,7 +74,7 @@ pnpm start
 
 ```
 packages/
-├── vconsole/    # 移动端 SDK
+├── sdk/         # 移动端 SDK
 ├── server/      # Node.js 服务器 (WebSocket + HTTP API)
 ├── mcp/         # MCP Server
 └── web/         # PC 查看页面 (React)

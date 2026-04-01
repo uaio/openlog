@@ -30,9 +30,9 @@ aiconsole/
 └── packages/
 ```
 
-### packages/vconsole (SDK)
+### packages/sdk (SDK)
 ```
-packages/vconsole/
+packages/sdk/
 ├── package.json
 ├── tsconfig.json
 ├── src/
@@ -322,9 +322,9 @@ git commit -m "chore: create mcp package skeleton"
 #### Task 0.4: 创建 VConsole 包骨架
 
 **Files:**
-- Create: `packages/vconsole/package.json`
-- Create: `packages/vconsole/tsconfig.json`
-- Create: `packages/vconsole/build/vite.config.ts`
+- Create: `packages/sdk/package.json`
+- Create: `packages/sdk/tsconfig.json`
+- Create: `packages/sdk/build/vite.config.ts`
 
 - [ ] **Step 1: 创建 vconsole/package.json**
 
@@ -377,7 +377,7 @@ export default defineConfig({
 - [ ] **Step 3: 提交**
 
 ```bash
-git add packages/vconsole/
+git add packages/sdk/
 git commit -m "chore: create vconsole package skeleton"
 ```
 
@@ -484,14 +484,14 @@ git commit -m "chore: create web package skeleton"
 #### Task 1.1: 设备 ID 生成逻辑
 
 **Files:**
-- Create: `packages/vconsole/src/types/index.ts`
-- Create: `packages/vconsole/src/core/device.ts`
-- Test: `packages/vconsole/src/core/device.test.ts`
+- Create: `packages/sdk/src/types/index.ts`
+- Create: `packages/sdk/src/core/device.ts`
+- Test: `packages/sdk/src/core/device.test.ts`
 
 - [ ] **Step 1: 创建类型定义**
 
 ```typescript
-// packages/vconsole/src/types/index.ts
+// packages/sdk/src/types/index.ts
 export interface DeviceInfo {
   deviceId: string;
   projectId: string;
@@ -522,7 +522,7 @@ export interface RemoteConfig {
 - [ ] **Step 2: 创建设备 ID 生成函数**
 
 ```typescript
-// packages/vconsole/src/core/device.ts
+// packages/sdk/src/core/device.ts
 import type { DeviceInfo } from '../types/index.js';
 
 // 简单的字符串 hash 函数
@@ -582,7 +582,7 @@ export function updateDeviceActiveTime(projectId: string): void {
 - [ ] **Step 3: 创建测试文件**
 
 ```typescript
-// packages/vconsole/src/core/device.test.ts
+// packages/sdk/src/core/device.test.ts
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { generateDeviceId, generateTabId, getDeviceInfo } from './device.js';
 
@@ -619,7 +619,7 @@ describe('device', () => {
 - [ ] **Step 4: 添加 vitest 依赖**
 
 ```bash
-cd packages/vconsole
+cd packages/sdk
 pnpm add -D vitest
 ```
 
@@ -656,7 +656,7 @@ Expected: PASS
 - [ ] **Step 8: 提交**
 
 ```bash
-git add packages/vconsole/
+git add packages/sdk/
 git commit -m "feat(vconsole): add device ID generation logic"
 ```
 
@@ -665,13 +665,13 @@ git commit -m "feat(vconsole): add device ID generation logic"
 #### Task 1.2: WebSocket Transport 模块
 
 **Files:**
-- Create: `packages/vconsole/src/transport/websocket.ts`
-- Create: `packages/vconsole/src/transport/reporter.ts`
+- Create: `packages/sdk/src/transport/websocket.ts`
+- Create: `packages/sdk/src/transport/reporter.ts`
 
 - [ ] **Step 1: 创建 WebSocket 连接管理**
 
 ```typescript
-// packages/vconsole/src/transport/websocket.ts
+// packages/sdk/src/transport/websocket.ts
 import type { RemoteConfig } from '../types/index.js';
 
 export type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'error';
@@ -778,7 +778,7 @@ export class WebSocketTransport {
 - [ ] **Step 2: 创建数据上报器**
 
 ```typescript
-// packages/vconsole/src/transport/reporter.ts
+// packages/sdk/src/transport/reporter.ts
 import type { DeviceInfo, ConsoleLogEntry } from '../types/index.js';
 import { WebSocketTransport } from './websocket.js';
 import type { ConnectionState } from './websocket.js';
@@ -909,7 +909,7 @@ export class Reporter {
 - [ ] **Step 3: 创建导出**
 
 ```typescript
-// packages/vconsole/src/transport/index.ts
+// packages/sdk/src/transport/index.ts
 export { WebSocketTransport } from './websocket.js';
 export type { ConnectionState, TransportEvents } from './websocket.js';
 export { Reporter } from './reporter.js';
@@ -918,7 +918,7 @@ export { Reporter } from './reporter.js';
 - [ ] **Step 4: 提交**
 
 ```bash
-git add packages/vconsole/src/transport/
+git add packages/sdk/src/transport/
 git commit -m "feat(vconsole): add WebSocket transport and reporter"
 ```
 
@@ -927,12 +927,12 @@ git commit -m "feat(vconsole): add WebSocket transport and reporter"
 #### Task 1.3: SDK 入口与初始化
 
 **Files:**
-- Create: `packages/vconsole/src/index.ts`
+- Create: `packages/sdk/src/index.ts`
 
 - [ ] **Step 1: 创建 SDK 入口文件**
 
 ```typescript
-// packages/vconsole/src/index.ts
+// packages/sdk/src/index.ts
 import { getDeviceInfo, generateTabId, updateDeviceActiveTime } from './core/device.js';
 import { Reporter } from './transport/reporter.js';
 import type { RemoteConfig } from './types/index.js';
@@ -1078,7 +1078,7 @@ export default AIConsole;
 - [ ] **Step 3: 构建测试**
 
 ```bash
-cd packages/vconsole
+cd packages/sdk
 pnpm build
 ```
 
@@ -1087,7 +1087,7 @@ Expected: 生成 dist 目录
 - [ ] **Step 4: 提交**
 
 ```bash
-git add packages/vconsole/
+git add packages/sdk/
 git commit -m "feat(vconsole): add SDK entry point and initialization"
 ```
 
@@ -2538,12 +2538,12 @@ git commit -m "feat(web): add main app layout"
 #### Task 5.1: 端到端测试
 
 **Files:**
-- Create: `packages/vconsole/test/e2e/basic.test.ts`
+- Create: `packages/sdk/test/e2e/basic.test.ts`
 
 - [ ] **Step 1: 创建 E2E 测试**
 
 ```typescript
-// packages/vconsole/test/e2e/basic.test.ts
+// packages/sdk/test/e2e/basic.test.ts
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { start } from '@aiconsole/server';
 import AIConsole from 'aiconsole';
@@ -2603,7 +2603,7 @@ describe('AIConsole E2E', () => {
 - [ ] **Step 2: 提交**
 
 ```bash
-git add packages/vconsole/test/
+git add packages/sdk/test/
 git commit -m "test(vconsole): add E2E tests"
 ```
 
@@ -2612,7 +2612,7 @@ git commit -m "test(vconsole): add E2E tests"
 #### Task 5.2: 使用文档
 
 **Files:**
-- Create: `packages/vconsole/README.md`
+- Create: `packages/sdk/README.md`
 - Create: `README.md` (根目录)
 
 - [ ] **Step 1: 创建 SDK README**
@@ -2712,7 +2712,7 @@ MIT
 - [ ] **Step 3: 提交**
 
 ```bash
-git add README.md packages/vconsole/README.md
+git add README.md packages/sdk/README.md
 git commit -m "docs: add usage documentation"
 ```
 
@@ -2738,10 +2738,10 @@ pnpm test
 node packages/server/dist/index.js
 
 # 构建 SDK
-cd packages/vconsole && pnpm build
+cd packages/sdk && pnpm build
 
 # 运行 E2E 测试
-cd packages/vconsole && pnpm test
+cd packages/sdk && pnpm test
 ```
 
 ---

@@ -127,7 +127,7 @@ AIConsole 的日志存储目前是内存存储，服务器重启会丢失。
 我完成了 [某功能] 的开发，请帮我审查代码。
 
 文件：
-- packages/vconsole/src/xxx.ts
+- packages/sdk/src/xxx.ts
 - packages/server/src/yyy.ts
 
 请使用 superpowers:requesting-code-review skill 进行代码审查。
