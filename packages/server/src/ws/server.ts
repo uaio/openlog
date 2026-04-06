@@ -79,7 +79,7 @@ export function createWebSocketServer(httpServer: HTTPServer) {
           return;
         }
 
-        // 移动端设备消息
+        // 移动端设备消息：Envelope（数据）或协议消息（register/heartbeat）
         const handler = handlers[message.type];
         if (handler) {
           const context: MessageContext = {

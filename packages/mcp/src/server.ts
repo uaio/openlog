@@ -1,8 +1,10 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
-import { listDevices, getConsoleLogs, getNetworkRequests, watchLogs, getStorage, getPageContext, executeJs, takeScreenshot, reloadPage, setStorage, clearStorage, highlightElement, zenMode, networkThrottle, addMock, removeMock, clearMocks, healthCheck, aiAnalyze, startPerfRun, stopPerfRun, getPerfReport } from './tools/index.js';
+import { CallToolRequestSchema, ListToolsRequestSchema, ListPromptsRequestSchema, GetPromptRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+import { listDevices, getConsoleLogs, getNetworkRequests, watchLogs, getStorage, getPageContext, executeJs, takeScreenshot, reloadPage, setStorage, clearStorage, highlightElement, zenMode, networkThrottle, addMock, removeMock, clearMocks, healthCheck, aiAnalyze, startPerfRun, stopPerfRun, getPerfReport, verifyCheckpoint, startMonitor, pollMonitor, stopMonitor, listMonitors, initDevSession } from './tools/index.js';
 import { startEmbeddedServer, stopEmbeddedServer, type EmbeddedServerConfig } from './launcher.js';
+import { wsClient } from './ws-client.js';
+import { API_BASE_URL } from './config.js';
 
 interface ToolArgs {
   [key: string]: unknown;
@@ -207,9 +209,104 @@ export async function startMCPServer(config?: EmbeddedServerConfig): Promise<voi
           name: aiAnalyze.name,
           description: aiAnalyze.description,
           inputSchema: aiAnalyze.inputSchema
+        },
+        {
+          name: verifyCheckpoint.name,
+          description: verifyCheckpoint.description,
+          inputSchema: verifyCheckpoint.inputSchema
+        },
+        {
+          name: startMonitor.name,
+          description: startMonitor.description,
+          inputSchema: startMonitor.inputSchema
+        },
+        {
+          name: pollMonitor.name,
+          description: pollMonitor.description,
+          inputSchema: pollMonitor.inputSchema
+        },
+        {
+          name: stopMonitor.name,
+          description: stopMonitor.description,
+          inputSchema: stopMonitor.inputSchema
+        },
+        {
+          name: listMonitors.name,
+          description: listMonitors.description,
+          inputSchema: listMonitors.inputSchema
+        },
+        {
+          name: initDevSession.name,
+          description: initDevSession.description,
+          inputSchema: initDevSession.inputSchema
         }
       ]
     };
+  });
+
+  // MCP Prompts — Claude Code 连接时自动载入，无需 CLAUDE.md
+  server.setRequestHandler(ListPromptsRequestSchema, async () => {
+    return {
+      prompts: [
+        {
+          name: 'openlog_dev_workflow',
+          description: 'openLog H5 开发自动验证工作流 SOP。开始开发 H5 功能时自动参考此流程。'
+        }
+      ]
+    };
+  });
+
+  server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+    if (request.params.name === 'openlog_dev_workflow') {
+      return {
+        description: 'openLog H5 开发自动验证工作流 SOP',
+        messages: [
+          {
+            role: 'user' as const,
+            content: {
+              type: 'text' as const,
+              text: `# openLog 开发工作流（自动注入，无需配置）
+
+## 开始开发 H5 功能时，必须执行以下步骤：
+
+### Step 1：启动开发会话（一次性）
+调用 \`init_dev_session()\`，它会：
+- 自动启动「报错监听器」和「日志监听器」
+- 返回两个 monitorId 和完整子代理 protocol
+
+### Step 2：启动两个子代理
+按照 protocol 启动：
+- **报错子代理**：每 3s 调用 \`poll_monitor(errorMonitorId)\`，hasAlert=true 时立即打断主代理
+- **日志子代理**：每 5s 调用 \`poll_monitor(logMonitorId)\`，warn/error 时通知主代理
+
+### Step 3：开发循环（主代理）
+每写完一个功能节点：
+\`\`\`
+verify_checkpoint(checkpoint="节点描述", triggerJs="触发代码", expects={...})
+  ✅ passed → 标注「✅ 节点已验证」→ 继续下一节点
+  ❌ failed → 查日志定位 → 修复 → 重新 verify_checkpoint（不得跳过）
+\`\`\`
+
+### Step 4：收到子代理告警时
+报错子代理报告 → 立即暂停开发 → \`get_console_logs(level="error")\` → 修复 → 恢复
+
+### Step 5：功能完成后
+\`\`\`
+health_check()   → 确认健康分 ≥ 80
+ai_analyze()     → 无高优先级问题
+\`\`\`
+
+### Step 6：会话结束
+通知两个子代理调用 \`stop_monitor()\` 清理资源。
+
+---
+**核心原则：主代理专注写代码和验证节点，子代理负责持续监控，互不阻塞。**`
+            }
+          }
+        ]
+      };
+    }
+    throw new Error(`Prompt not found: ${request.params.name}`);
   });
 
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
@@ -377,6 +474,42 @@ export async function startMCPServer(config?: EmbeddedServerConfig): Promise<voi
           return { content: [{ type: 'text', text: JSON.stringify(r, null, 2) }] };
         }
 
+        case 'verify_checkpoint': {
+          const r = await verifyCheckpoint.execute(args as {
+            checkpoint: string;
+            triggerJs?: string;
+            waitMs?: number;
+            expects?: import('./tools/verify_checkpoint.js').CheckpointExpect;
+            deviceId?: string;
+          });
+          return { content: [{ type: 'text', text: JSON.stringify(r, null, 2) }] };
+        }
+
+        case 'start_monitor': {
+          const r = await startMonitor.execute(args as { type: 'error' | 'log'; deviceId?: string });
+          return { content: [{ type: 'text', text: JSON.stringify(r, null, 2) }] };
+        }
+
+        case 'poll_monitor': {
+          const r = await pollMonitor.execute(args as { monitorId: string });
+          return { content: [{ type: 'text', text: JSON.stringify(r, null, 2) }] };
+        }
+
+        case 'stop_monitor': {
+          const r = await stopMonitor.execute(args as { monitorId: string });
+          return { content: [{ type: 'text', text: JSON.stringify(r, null, 2) }] };
+        }
+
+        case 'list_monitors': {
+          const r = await listMonitors.execute({} as Record<string, never>);
+          return { content: [{ type: 'text', text: JSON.stringify(r, null, 2) }] };
+        }
+
+        case 'init_dev_session': {
+          const r = await initDevSession.execute(args as { deviceId?: string });
+          return { content: [{ type: 'text', text: JSON.stringify(r, null, 2) }] };
+        }
+
         default:
           throw new Error(`Unknown tool: ${name}`);
       }
@@ -393,6 +526,9 @@ export async function startMCPServer(config?: EmbeddedServerConfig): Promise<voi
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
+
+  // 以 viewer 身份连接 Server WS，实现实时数据推送和指令下发
+  wsClient.connect(API_BASE_URL);
 
   console.error('openLog MCP Server running on stdio');
 }

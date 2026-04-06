@@ -40,47 +40,28 @@ export function useLogs(deviceId?: string, maxLogs = 500) {
   }, [deviceId, maxLogs]);
 
   const handleWebSocketMessage = useCallback((message: any) => {
-    console.log('[useLogs] 收到消息:', message.type, message.data);
-    if (message.type === 'log' && message.data) {
-      const newLog = message.data as ConsoleLog;
+    if (message.type === 'event' && message.envelope?.type === 'console') {
+      const envelope = message.envelope;
+      if (deviceId && message.deviceId !== deviceId) return;
 
-      // 如果指定了 deviceId，只过滤该设备的日志
-      if (deviceId && newLog.deviceId !== deviceId) {
-        console.log('[useLogs] 过滤日志，期望 deviceId:', deviceId, '收到:', newLog.deviceId);
-        return;
-      }
+      const newLog: ConsoleLog = {
+        deviceId: envelope.device.deviceId,
+        tabId: envelope.tabId,
+        timestamp: envelope.ts,
+        level: envelope.data.level,
+        message: envelope.data.message,
+        stack: envelope.data.stack,
+      };
 
-      console.log('[useLogs] 添加日志到缓冲区:', newLog);
-
-      // 添加到缓冲区
       logBufferRef.current.push(newLog);
-
-      // 批量更新日志（每 10 条或 100ms）
-      if (logBufferRef.current.length >= 10) {
-        flushLogs();
-      }
+      if (logBufferRef.current.length >= 10) flushLogs();
     }
   }, [deviceId]);
 
   const flushLogs = useCallback(() => {
-    if (logBufferRef.current.length === 0) {
-      return;
-    }
-
-    console.log('[useLogs] 刷新缓冲区，日志数量:', logBufferRef.current.length);
-
-    // 先捕获当前缓冲区内容，避免在 setLogs 回调中读取时被清空
+    if (logBufferRef.current.length === 0) return;
     const logsToAdd = [...logBufferRef.current];
-
-    setLogs(prevLogs => {
-      // 把新日志添加到前面，最新的在最上面
-      const newLogs = [...logsToAdd, ...prevLogs];
-      // 限制日志数量，避免内存溢出
-      const result = newLogs.slice(0, maxLogs);
-      console.log('[useLogs] 更新 logs 状态，从', prevLogs.length, '条变为', result.length, '条');
-      return result;
-    });
-
+    setLogs(prevLogs => [...logsToAdd, ...prevLogs].slice(0, maxLogs));
     logBufferRef.current = [];
   }, [maxLogs]);
 

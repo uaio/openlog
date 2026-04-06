@@ -21,8 +21,9 @@ export function usePerformance(deviceId?: string) {
   useEffect(() => { fetchReport(); }, [fetchReport]);
 
   const handleMessage = useCallback((message: any) => {
-    if (message.type === 'performance' && message.data?.deviceId === deviceId) {
-      setReport(message.data as PerformanceReport);
+    if (message.type === 'event' && message.envelope?.type === 'performance' && message.deviceId === deviceId) {
+      const envelope = message.envelope;
+      setReport({ deviceId: envelope.device.deviceId, tabId: envelope.tabId, ...envelope.data } as PerformanceReport);
     }
   }, [deviceId]);
 

@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config.js';
+import { wsClient } from '../ws-client.js';
 import { DeviceSelector } from '../lib/device-selector.js';
 
 const deviceSelector = new DeviceSelector();
@@ -15,9 +15,8 @@ export const reloadPage = {
   },
   async execute(args: { deviceId?: string }): Promise<{ ok: boolean }> {
     const id = await deviceSelector.selectDevice(args.deviceId);
-    const res = await fetch(`${API_BASE_URL}/api/devices/${id}/reload`, { method: 'POST' });
-    if (!res.ok) throw new Error(`reload_page failed: ${res.statusText}`);
-    return res.json();
+    wsClient.sendCommand(id, { type: 'reload_page' });
+    return { ok: true };
   }
 };
 
@@ -36,13 +35,8 @@ export const setStorage = {
   },
   async execute(args: { key: string; value?: string; storageType?: string; deviceId?: string }): Promise<{ ok: boolean }> {
     const id = await deviceSelector.selectDevice(args.deviceId);
-    const res = await fetch(`${API_BASE_URL}/api/devices/${id}/storage/set`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: args.key, value: args.value ?? '', storageType: args.storageType || 'local' })
-    });
-    if (!res.ok) throw new Error(`set_storage failed: ${res.statusText}`);
-    return res.json();
+    wsClient.sendCommand(id, { type: 'set_storage', key: args.key, value: args.value ?? '', storageType: args.storageType || 'local' });
+    return { ok: true };
   }
 };
 
@@ -59,13 +53,8 @@ export const clearStorage = {
   },
   async execute(args: { storageType?: string; deviceId?: string }): Promise<{ ok: boolean }> {
     const id = await deviceSelector.selectDevice(args.deviceId);
-    const res = await fetch(`${API_BASE_URL}/api/devices/${id}/storage/clear`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ storageType: args.storageType || 'all' })
-    });
-    if (!res.ok) throw new Error(`clear_storage failed: ${res.statusText}`);
-    return res.json();
+    wsClient.sendCommand(id, { type: 'clear_storage', storageType: args.storageType || 'all' });
+    return { ok: true };
   }
 };
 
@@ -83,12 +72,8 @@ export const highlightElement = {
   },
   async execute(args: { selector: string; duration?: number; deviceId?: string }): Promise<{ ok: boolean }> {
     const id = await deviceSelector.selectDevice(args.deviceId);
-    const res = await fetch(`${API_BASE_URL}/api/devices/${id}/highlight`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ selector: args.selector, duration: args.duration ?? 3000 })
-    });
-    if (!res.ok) throw new Error(`highlight_element failed: ${res.statusText}`);
-    return res.json();
+    wsClient.sendCommand(id, { type: 'highlight_element', selector: args.selector, duration: args.duration ?? 3000 });
+    return { ok: true };
   }
 };
+

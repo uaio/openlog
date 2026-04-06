@@ -24,8 +24,9 @@ export function useDOM(deviceId?: string) {
   useEffect(() => { fetchDOM(); }, [fetchDOM]);
 
   const handleMessage = useCallback((message: any) => {
-    if (message.type === 'dom' && message.data?.deviceId === deviceId) {
-      setSnapshot(message.data);
+    if (message.type === 'event' && message.envelope?.type === 'dom' && message.deviceId === deviceId) {
+      const envelope = message.envelope;
+      setSnapshot({ deviceId: envelope.device.deviceId, tabId: envelope.tabId, ...envelope.data });
     }
   }, [deviceId]);
 

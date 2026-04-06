@@ -124,10 +124,13 @@ export class OpenLog {
     // ③ Eruda 展示插件实例（会在 Eruda 异步加载后绑定）
     this.erudaPlugin = new ErudaPlugin();
 
+    // 解析服务器地址：优先 server，其次 port（自动推断 hostname）
+    const resolvedServer = options.server ?? resolveServerUrl(options.port);
+
     // 检查用户是否之前关闭了远程监控
     const remoteDisabled = this.platform.storage.getItem(`openlog_remote_${this.projectId}`) === 'false';
     if (!remoteDisabled) {
-      this.reporter.connect(options.server);
+      this.reporter.connect(resolvedServer);
     }
 
     // ④ Console 拦截 — DataBus emit 发生在第一时间，之后再调用原始 console（Eruda 链）
@@ -560,3 +563,41 @@ export default OpenLog;
 // 导出平台适配接口，供外部平台实现
 export type { PlatformAdapter, StorageAdapter, DeviceAdapter, TimerAdapter, WSConnection, WSEvents } from './platform/types.js';
 export { BrowserAdapter } from './platform/browser/index.js';
+
+// ─────────────────────────────────────────────────────────────
+// CDN / IIFE 友好 API
+// 用法：<script src="https://unpkg.com/openlog/dist/openlog.iife.js"></script>
+//       OpenLog.init({ projectId: 'my-app', lang: 'zh', port: 38291 })
+// ─────────────────────────────────────────────────────────────
+
+let _instance: OpenLog | null = null;
+
+/**
+ * 全局初始化入口，适用于 CDN script 标签引入场景。
+ * 重复调用会销毁旧实例并重新初始化。
+ */
+export function init(options: OpenLogOptions): OpenLog {
+  if (_instance) {
+    _instance.destroy();
+    _instance = null;
+  }
+  _instance = new OpenLog(options);
+  return _instance;
+}
+
+/** 获取当前全局实例（CDN 场景下使用） */
+export function getInstance(): OpenLog | null {
+  return _instance;
+}
+
+/**
+ * 根据 port 自动推断 WebSocket 服务器地址。
+ * 使用当前页面的 hostname，适合 PC 和手机在同一局域网、
+ * 页面由开发服务器（同一台机器）提供的场景。
+ */
+export function resolveServerUrl(port?: number): string | undefined {
+  if (!port) return undefined;
+  const protocol = typeof location !== 'undefined' && location.protocol === 'https:' ? 'wss' : 'ws';
+  const host = typeof location !== 'undefined' ? location.hostname : 'localhost';
+  return `${protocol}://${host}:${port}`;
+}

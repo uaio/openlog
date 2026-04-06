@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config.js';
+import { wsClient } from '../ws-client.js';
 import { DeviceSelector } from '../lib/device-selector.js';
 
 const deviceSelector = new DeviceSelector();
@@ -16,12 +16,7 @@ export const networkThrottle = {
   },
   async execute(args: { preset: string; deviceId?: string }): Promise<{ ok: boolean; preset: string }> {
     const id = await deviceSelector.selectDevice(args.deviceId);
-    const res = await fetch(`${API_BASE_URL}/api/devices/${id}/network-throttle`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ preset: args.preset })
-    });
-    if (!res.ok) throw new Error(`network_throttle failed: ${res.statusText}`);
-    return res.json();
+    wsClient.sendCommand(id, { type: 'set_network_throttle', preset: args.preset });
+    return { ok: true, preset: args.preset };
   }
 };

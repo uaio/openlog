@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config.js';
+import { wsClient } from '../ws-client.js';
 import { DeviceSelector } from '../lib/device-selector.js';
 
 const deviceSelector = new DeviceSelector();
@@ -23,25 +23,18 @@ export const takeScreenshot = {
     required: []
   },
 
-  async execute(args: { deviceId?: string }): Promise<{ dataUrl: string; width: number; height: number; timestamp: number }> {
+  async execute(args: { deviceId?: string }): Promise<any> {
     const selectedDeviceId = await deviceSelector.selectDevice(args.deviceId);
 
-    // trigger capture
-    const triggerRes = await fetch(`${API_BASE_URL}/api/devices/${selectedDeviceId}/screenshot`, {
-      method: 'POST',
-    });
-    if (!triggerRes.ok) {
-      const err = await triggerRes.json().catch(() => ({ error: triggerRes.statusText }));
-      throw new Error(`take_screenshot trigger failed: ${err.error || triggerRes.statusText}`);
-    }
+    wsClient.sendCommand(selectedDeviceId, { type: 'take_screenshot' });
 
-    // wait for device to capture and send back
+    // 等待截图推送到 WS buffer
     await new Promise(r => setTimeout(r, 3000));
 
-    const getRes = await fetch(`${API_BASE_URL}/api/devices/${selectedDeviceId}/screenshot`);
-    if (!getRes.ok) {
-      throw new Error('Screenshot not yet available. Try again in a moment.');
+    const screenshot = wsClient.getScreenshot(selectedDeviceId);
+    if (!screenshot) {
+      return { ok: false, message: '截图未返回，请确认设备在线并重试' };
     }
-    return getRes.json();
+    return screenshot;
   }
 };

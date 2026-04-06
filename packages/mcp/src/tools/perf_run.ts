@@ -1,3 +1,4 @@
+import { wsClient } from '../ws-client.js';
 import { API_BASE_URL } from '../config.js';
 import { DeviceSelector } from '../lib/device-selector.js';
 
@@ -15,13 +16,8 @@ export const startPerfRun = {
   },
   async execute(args: { deviceId?: string }): Promise<{ ok: boolean }> {
     const id = await deviceSelector.selectDevice(args.deviceId);
-    const res = await fetch(`${API_BASE_URL}/api/devices/${id}/perf-run/start`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({})
-    });
-    if (!res.ok) throw new Error(`start_perf_run failed: ${res.statusText}`);
-    return res.json();
+    wsClient.sendCommand(id, { type: 'start_perf_run' });
+    return { ok: true };
   }
 };
 
@@ -37,19 +33,14 @@ export const stopPerfRun = {
   },
   async execute(args: { deviceId?: string }): Promise<{ ok: boolean }> {
     const id = await deviceSelector.selectDevice(args.deviceId);
-    const res = await fetch(`${API_BASE_URL}/api/devices/${id}/perf-run/stop`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({})
-    });
-    if (!res.ok) throw new Error(`stop_perf_run failed: ${res.statusText}`);
-    return res.json();
+    wsClient.sendCommand(id, { type: 'stop_perf_run' });
+    return { ok: true };
   }
 };
 
 export const getPerfReport = {
   name: 'get_perf_report',
-  description: '获取手机端最新跑分报告，包含综合分、各指标评分、问题列表和优化建议。可指定 sessionId 获取历史报告。',
+  description: '获取手机端最新跑分报告，包含综合分、各指标评分、问题列表和优化建议。',
   inputSchema: {
     type: 'object' as const,
     properties: {
@@ -60,6 +51,7 @@ export const getPerfReport = {
   },
   async execute(args: { deviceId?: string; sessionId?: string }): Promise<any> {
     const id = await deviceSelector.selectDevice(args.deviceId);
+    // perf_run 报告存在服务端 store，用 REST 读取历史数据
     const path = args.sessionId
       ? `/api/devices/${id}/perf-run/${args.sessionId}`
       : `/api/devices/${id}/perf-run`;
@@ -68,3 +60,4 @@ export const getPerfReport = {
     return res.json();
   }
 };
+

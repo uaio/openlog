@@ -22,6 +22,17 @@ export interface ConsoleLogEntry {
 export interface RemoteConfig {
   projectId: string;
   server?: string;
+  /**
+   * 服务器端口简写（与 server 二选一）。
+   * 填写后 SDK 自动推断 ws://[当前页面 hostname]:port。
+   * 适合 PC 和手机在同一局域网、页面由同一台机器提供服务的场景。
+   */
+  port?: number;
+  /**
+   * 界面语言，默认 'zh'。
+   * 'zh' 中文  |  'en' 英文
+   */
+  lang?: 'zh' | 'en';
 }
 
 export interface ErudaConfig {

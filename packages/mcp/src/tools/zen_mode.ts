@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config.js';
+import { wsClient } from '../ws-client.js';
 import { DeviceSelector } from '../lib/device-selector.js';
 
 const deviceSelector = new DeviceSelector();
@@ -19,12 +19,7 @@ export const zenMode = {
   },
   async execute(args: { enabled: boolean; deviceId?: string }): Promise<{ ok: boolean; zenMode: boolean }> {
     const id = await deviceSelector.selectDevice(args.deviceId);
-    const res = await fetch(`${API_BASE_URL}/api/devices/${id}/zen`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ enabled: args.enabled })
-    });
-    if (!res.ok) throw new Error(`zen_mode failed: ${res.statusText}`);
-    return res.json();
+    wsClient.sendCommand(id, { type: 'zen_mode', enabled: args.enabled });
+    return { ok: true, zenMode: args.enabled };
   }
 };

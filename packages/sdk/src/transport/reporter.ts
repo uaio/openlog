@@ -132,7 +132,7 @@ export class Reporter {
 
   reportPerfRun(session: import('../types/index.js').PerfRunSession): void {
     if (!this.remoteEnabled || !this.transport) return;
-    this.send({ type: 'perf_run', ...session });
+    this.sendEnvelope('perf_run', session);
   }
 
   disconnect(): void {
@@ -233,92 +233,39 @@ export class Reporter {
 
   reportConsole(entry: Omit<ConsoleLogEntry, 'deviceId' | 'tabId'>): void {
     if (!this.remoteEnabled || !this.transport) return;
-
-    if (!this.rateLimiter.check()) {
-      return;
-    }
-
-    const logEntry: ConsoleLogEntry = {
-      ...entry,
-      deviceId: this.deviceInfo.deviceId,
-      tabId: this.tabId
-    };
-
-    this.send({
-      type: 'console',
-      ...logEntry
+    if (!this.rateLimiter.check()) return;
+    this.sendEnvelope('console', {
+      level: entry.level,
+      args: (entry as any).args ?? [entry.message],
+      message: entry.message,
+      stack: entry.stack,
     });
   }
 
   reportNetwork(entry: Omit<NetworkRequestEntry, 'deviceId' | 'tabId'>): void {
     if (!this.remoteEnabled || !this.transport) return;
-
-    if (!this.rateLimiter.check()) {
-      return;
-    }
-
-    const networkEntry: NetworkRequestEntry = {
-      ...entry,
-      deviceId: this.deviceInfo.deviceId,
-      tabId: this.tabId
-    };
-
-    this.send({
-      ...networkEntry,
-      type: 'network'
-    });
+    if (!this.rateLimiter.check()) return;
+    this.sendEnvelope('network', entry);
   }
 
   reportStorage(snapshot: Omit<StorageSnapshot, 'deviceId' | 'tabId'>): void {
     if (!this.remoteEnabled || !this.transport) return;
-
-    const storageEntry: StorageSnapshot = {
-      ...snapshot,
-      deviceId: this.deviceInfo.deviceId,
-      tabId: this.tabId
-    };
-
-    this.send({
-      ...storageEntry,
-      type: 'storage'
-    });
+    this.sendEnvelope('storage', snapshot);
   }
 
   reportDOM(snapshot: Omit<DOMSnapshot, 'deviceId' | 'tabId'>): void {
     if (!this.remoteEnabled || !this.transport) return;
-
-    const domEntry: DOMSnapshot = {
-      ...snapshot,
-      deviceId: this.deviceInfo.deviceId,
-      tabId: this.tabId
-    };
-
-    this.send({
-      ...domEntry,
-      type: 'dom'
-    });
+    this.sendEnvelope('dom', snapshot);
   }
 
   reportPerformance(report: Omit<PerformanceReport, 'deviceId' | 'tabId'>): void {
     if (!this.remoteEnabled || !this.transport) return;
-
-    const entry: PerformanceReport = {
-      ...report,
-      deviceId: this.deviceInfo.deviceId,
-      tabId: this.tabId
-    };
-
-    this.send({ ...entry, type: 'performance' });
+    this.sendEnvelope('performance', report);
   }
 
   reportScreenshot(data: import('../types/index.js').ScreenshotData): void {
     if (!this.remoteEnabled || !this.transport) return;
-    this.send({
-      type: 'screenshot',
-      deviceId: this.deviceInfo.deviceId,
-      tabId: this.tabId,
-      ...data,
-    });
+    this.sendEnvelope('screenshot', data);
   }
 
   updateDeviceInfo(): void {
@@ -344,7 +291,27 @@ export class Reporter {
     });
   }
 
-  private send(data: any): void {
+  private sendEnvelope(type: string, data: unknown): void {
+    this.send({
+      v: '1',
+      platform: 'web',
+      device: {
+        deviceId: this.deviceInfo.deviceId,
+        projectId: this.deviceInfo.projectId,
+        ua: this.deviceInfo.ua,
+        screen: this.deviceInfo.screen,
+        pixelRatio: this.deviceInfo.pixelRatio,
+        language: this.deviceInfo.language,
+        url: this.deviceInfo.url,
+      },
+      tabId: this.tabId,
+      ts: Date.now(),
+      type,
+      data,
+    });
+  }
+
+  private send(data: unknown): void {
     this.transport?.send(JSON.stringify(data));
   }
 }

@@ -29,10 +29,10 @@ export function useStorage(deviceId?: string) {
     fetchStorage();
   }, [fetchStorage]);
 
-  // 实时更新
   const handleMessage = useCallback((message: any) => {
-    if (message.type === 'storage' && message.data?.deviceId === deviceId) {
-      setSnapshot(message.data);
+    if (message.type === 'event' && message.envelope?.type === 'storage' && message.deviceId === deviceId) {
+      const envelope = message.envelope;
+      setSnapshot({ deviceId: envelope.device.deviceId, tabId: envelope.tabId, ...envelope.data });
     }
   }, [deviceId]);
 

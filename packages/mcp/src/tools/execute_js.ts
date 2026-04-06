@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config.js';
+import { wsClient } from '../ws-client.js';
 import { DeviceSelector } from '../lib/device-selector.js';
 
 const deviceSelector = new DeviceSelector();
@@ -30,18 +30,7 @@ export const executeJs = {
 
   async execute(args: { code: string; deviceId?: string }): Promise<{ ok: boolean; message: string }> {
     const selectedDeviceId = await deviceSelector.selectDevice(args.deviceId);
-
-    const response = await fetch(`${API_BASE_URL}/api/devices/${selectedDeviceId}/execute`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: args.code })
-    });
-
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({ error: response.statusText }));
-      throw new Error(`execute_js failed: ${err.error || response.statusText}`);
-    }
-
-    return response.json();
+    wsClient.sendCommand(selectedDeviceId, { type: 'execute_js', code: args.code });
+    return { ok: true, message: '代码已发送，结果将出现在 get_console_logs 中' };
   }
 };

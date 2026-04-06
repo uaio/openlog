@@ -51,11 +51,19 @@ export const handlers: Record<string, MessageHandler> = {
     broadcastDeviceList(context);
   },
 
-  console: (data, context) => {
-    console.log('[Server] 收到 console 消息:', data);
+  console: (envelope, context) => {
     const { logStore } = context;
-    logStore.push(data.deviceId, data);
-    broadcastLog(data, context);
+    const deviceId = envelope.device.deviceId;
+    const flat = {
+      deviceId,
+      tabId: envelope.tabId,
+      timestamp: envelope.ts,
+      level: envelope.data.level,
+      message: envelope.data.message,
+      stack: envelope.data.stack,
+    };
+    logStore.push(deviceId, flat);
+    broadcastEvent(envelope, context);
   },
 
   heartbeat: (data, context) => {
@@ -66,40 +74,52 @@ export const handlers: Record<string, MessageHandler> = {
     }
   },
 
-  network: (data, context) => {
+  network: (envelope, context) => {
     const { networkStore } = context;
-    networkStore.push(data.deviceId, data);
-    broadcastNetwork(data, context);
+    const deviceId = envelope.device.deviceId;
+    networkStore.push(deviceId, { deviceId, tabId: envelope.tabId, ...envelope.data });
+    broadcastEvent(envelope, context);
   },
 
-  storage: (data, context) => {
+  storage: (envelope, context) => {
     const { storageStore } = context;
-    storageStore.update(data.deviceId, data);
-    broadcastStorage(data, context);
+    const deviceId = envelope.device.deviceId;
+    storageStore.update(deviceId, { deviceId, tabId: envelope.tabId, ...envelope.data });
+    broadcastEvent(envelope, context);
   },
 
-  dom: (data, context) => {
+  dom: (envelope, context) => {
     const { domStore } = context;
-    domStore.update(data.deviceId, data);
-    broadcastDOM(data, context);
+    const deviceId = envelope.device.deviceId;
+    domStore.update(deviceId, { deviceId, tabId: envelope.tabId, ...envelope.data });
+    broadcastEvent(envelope, context);
   },
 
-  performance: (data, context) => {
+  performance: (envelope, context) => {
     const { performanceStore } = context;
-    performanceStore.update(data.deviceId, data);
-    broadcastPerformance(data, context);
+    const deviceId = envelope.device.deviceId;
+    performanceStore.update(deviceId, { deviceId, tabId: envelope.tabId, ...envelope.data });
+    broadcastEvent(envelope, context);
   },
 
-  screenshot: (data, context) => {
+  screenshot: (envelope, context) => {
     const { screenshotStore } = context;
-    screenshotStore.update(data.deviceId, data);
-    broadcastScreenshot(data, context);
+    const deviceId = envelope.device.deviceId;
+    screenshotStore.update(deviceId, {
+      deviceId,
+      tabId: envelope.tabId,
+      timestamp: envelope.ts,
+      dataUrl: envelope.data.dataUrl ?? '',
+      width: envelope.data.width ?? 0,
+      height: envelope.data.height ?? 0,
+    });
+    broadcastEvent(envelope, context);
   },
 
-  perf_run: (data, context) => {
+  perf_run: (envelope, context) => {
     const { perfRunStore } = context;
-    perfRunStore.add(data);
-    broadcastPerfRun(data, context);
+    perfRunStore.add({ ...envelope.data, deviceId: envelope.device.deviceId });
+    broadcastEvent(envelope, context);
   },
 };
 
@@ -114,81 +134,20 @@ export function registerDeviceClient(ws: WebSocket, deviceId: string): void {
 function broadcastDeviceList(context: MessageContext): void {
   const devices = context.deviceStore.list();
   const message = JSON.stringify({ type: 'devices', data: devices });
-
   for (const client of pcClients) {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(message);
-    }
+    if (client.readyState === WebSocket.OPEN) client.send(message);
   }
 }
 
-function broadcastLog(log: any, context: MessageContext): void {
-  const message = JSON.stringify({ type: 'log', data: log });
-  console.log(`[Server] 广播日志到 ${pcClients.size} 个 PC 客户端`);
-
+/** 统一广播：向所有 viewer（PC + MCP）推送 ServerEventPush */
+function broadcastEvent(envelope: any, _context: MessageContext): void {
+  const message = JSON.stringify({
+    type: 'event',
+    deviceId: envelope.device.deviceId,
+    envelope,
+  });
   for (const client of pcClients) {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(message);
-    }
-  }
-}
-
-function broadcastNetwork(request: any, context: MessageContext): void {
-  const message = JSON.stringify({ type: 'network', data: request });
-
-  for (const client of pcClients) {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(message);
-    }
-  }
-}
-
-function broadcastStorage(snapshot: any, context: MessageContext): void {
-  const message = JSON.stringify({ type: 'storage', data: snapshot });
-
-  for (const client of pcClients) {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(message);
-    }
-  }
-}
-
-function broadcastDOM(snapshot: any, context: MessageContext): void {
-  const message = JSON.stringify({ type: 'dom', data: snapshot });
-
-  for (const client of pcClients) {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(message);
-    }
-  }
-}
-
-function broadcastPerformance(report: any, _context: MessageContext): void {
-  const message = JSON.stringify({ type: 'performance', data: report });
-
-  for (const client of pcClients) {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(message);
-    }
-  }
-}
-
-function broadcastScreenshot(data: any, _context: MessageContext): void {
-  const message = JSON.stringify({ type: 'screenshot', data });
-
-  for (const client of pcClients) {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(message);
-    }
-  }
-}
-
-function broadcastPerfRun(data: any, _context: MessageContext): void {
-  const message = JSON.stringify({ type: 'perf_run', data });
-  for (const client of pcClients) {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(message);
-    }
+    if (client.readyState === WebSocket.OPEN) client.send(message);
   }
 }
 
@@ -199,6 +158,20 @@ export function sendToDevice(deviceId: string, message: any): void {
       client.send(msg);
       return;
     }
+  }
+}
+
+/**
+ * 向所有 viewer 广播 Envelope（供 ingest API 使用）
+ */
+export function broadcastToViewers(envelope: any): void {
+  const msg = JSON.stringify({
+    type: 'event',
+    deviceId: envelope.device?.deviceId ?? 'unknown',
+    envelope,
+  });
+  for (const client of pcClients) {
+    if (client.readyState === WebSocket.OPEN) client.send(msg);
   }
 }
 

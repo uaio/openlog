@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config.js';
+import { wsClient } from '../ws-client.js';
 import { DeviceSelector } from '../lib/device-selector.js';
 
 const deviceSelector = new DeviceSelector();
@@ -19,19 +19,11 @@ export const addMock = {
   },
   async execute(args: { pattern: string; method?: string; status?: number; body: string; deviceId?: string }): Promise<{ ok: boolean }> {
     const id = await deviceSelector.selectDevice(args.deviceId);
-    const res = await fetch(`${API_BASE_URL}/api/devices/${id}/mocks`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        pattern: args.pattern,
-        method: args.method,
-        status: args.status ?? 200,
-        headers: {},
-        body: args.body,
-      })
+    wsClient.sendCommand(id, {
+      type: 'add_mock',
+      rule: { pattern: args.pattern, method: args.method, status: args.status ?? 200, headers: {}, body: args.body }
     });
-    if (!res.ok) throw new Error(`add_mock failed: ${res.statusText}`);
-    return res.json();
+    return { ok: true };
   }
 };
 
@@ -48,9 +40,8 @@ export const removeMock = {
   },
   async execute(args: { mockId: string; deviceId?: string }): Promise<{ ok: boolean }> {
     const id = await deviceSelector.selectDevice(args.deviceId);
-    const res = await fetch(`${API_BASE_URL}/api/devices/${id}/mocks/${args.mockId}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error(`remove_mock failed: ${res.statusText}`);
-    return res.json();
+    wsClient.sendCommand(id, { type: 'remove_mock', id: args.mockId });
+    return { ok: true };
   }
 };
 
@@ -66,8 +57,8 @@ export const clearMocks = {
   },
   async execute(args: { deviceId?: string }): Promise<{ ok: boolean }> {
     const id = await deviceSelector.selectDevice(args.deviceId);
-    const res = await fetch(`${API_BASE_URL}/api/devices/${id}/mocks`, { method: 'DELETE' });
-    if (!res.ok) throw new Error(`clear_mocks failed: ${res.statusText}`);
-    return res.json();
+    wsClient.sendCommand(id, { type: 'clear_mocks' });
+    return { ok: true };
   }
 };
+

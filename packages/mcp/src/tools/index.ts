@@ -13,3 +13,6 @@ export { addMock, removeMock, clearMocks } from './mock_api.js';
 export { startPerfRun, stopPerfRun, getPerfReport } from './perf_run.js';
 export { healthCheck } from './health_check.js';
 export { aiAnalyze } from './ai_analyze.js';
+export { verifyCheckpoint } from './verify_checkpoint.js';
+export { startMonitor, pollMonitor, stopMonitor, listMonitors } from './monitor.js';
+export { initDevSession } from './init_dev_session.js';

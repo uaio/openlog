@@ -1,36 +1,28 @@
 #!/usr/bin/env node
-import { start } from '../dist/cli/index.js';
 import { parseArgs } from 'util';
 
 const args = parseArgs({
+  allowPositionals: true,
   options: {
-    port: {
-      type: 'string',
-      short: 'p'
-    }
+    port: { type: 'string', short: 'p' },
+    for: { type: 'string' }  // --for=claude|cursor|windsurf|copilot
   }
 });
 
+const subcommand = args.positionals[0];
+
 function validatePort(portStr) {
-  if (portStr === undefined) {
-    return undefined;
-  }
-
+  if (portStr === undefined) return undefined;
   const port = parseInt(portStr, 10);
-
-  if (isNaN(port)) {
-    console.error(`错误: 端口号必须是数字，收到 "${portStr}"`);
-    process.exit(1);
-  }
-
-  if (port < 1 || port > 65535) {
-    console.error(`错误: 端口号必须在 1-65535 范围内，收到 ${port}`);
-    process.exit(1);
-  }
-
+  if (isNaN(port)) { console.error(`错误: 端口号必须是数字，收到 "${portStr}"`); process.exit(1); }
+  if (port < 1 || port > 65535) { console.error(`错误: 端口号必须在 1-65535 范围内，收到 ${port}`); process.exit(1); }
   return port;
 }
 
-await start({
-  port: validatePort(args.values.port)
-});
+if (subcommand === 'init') {
+  const { init } = await import('../dist/cli/init.js');
+  await init({ forTool: args.values.for });
+} else {
+  const { start } = await import('../dist/cli/index.js');
+  await start({ port: validatePort(args.values.port) });
+}

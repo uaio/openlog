@@ -186,13 +186,22 @@ importers:
       '@openlog/server':
         specifier: workspace:*
         version: link:../server
+      '@openlog/types':
+        specifier: workspace:*
+        version: link:../types
       open:
         specifier: ^10.0.0
         version: 10.2.0
+      ws:
+        specifier: ^8.16.0
+        version: 8.19.0
     devDependencies:
       '@types/node':
         specifier: ^20.0.0
         version: 20.19.37
+      '@types/ws':
+        specifier: ^8.5.0
+        version: 8.18.1
 
   packages/sdk:
     dependencies:
@@ -218,6 +227,9 @@ importers:
 
   packages/server:
     dependencies:
+      '@openlog/types':
+        specifier: workspace:*
+        version: link:../types
       cors:
         specifier: ^2.8.6
         version: 2.8.6
@@ -237,6 +249,15 @@ importers:
       '@types/ws':
         specifier: ^8.5.0
         version: 8.18.1
+
+  packages/types:
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.37
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
 
   packages/web:
     dependencies:

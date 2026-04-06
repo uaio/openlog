@@ -90,25 +90,61 @@ export async function start(options: CLIOptions = {}) {
     });
 
     server.listen(port, '0.0.0.0', () => {
-      const networkInterface = Object.values(networkInterfaces())
-        .flat()
-        .find(iface => iface?.family === 'IPv4' && !iface.internal);
+      // 列出所有可用的 IPv4 地址（跳过 loopback）
+      const allIpv4 = Object.entries(networkInterfaces())
+        .flatMap(([name, ifaces]) =>
+          (ifaces ?? [])
+            .filter(i => i.family === 'IPv4' && !i.internal)
+            .map(i => ({ name, address: i.address }))
+        );
 
       const localUrl = `http://localhost:${port}`;
-      const networkUrl = networkInterface
-        ? `http://${networkInterface.address}:${port}`
-        : localUrl;
+
+      // 构建网络地址列表行
+      const networkLines = allIpv4.length > 0
+        ? allIpv4.map(({ name, address }) => {
+            const url = `http://${address}:${port}`;
+            const wsUrl = `ws://${address}:${port}`;
+            return (
+              `  ${name.padEnd(12)} ${url}\n` +
+              `               SDK server: '${wsUrl}'`
+            );
+          }).join('\n')
+        : '  （未检测到局域网地址）';
+
+      // CDN snippet 用第一个 IP（最常用的），若无则用 localhost
+      const primaryIp = allIpv4[0]?.address ?? 'localhost';
+      const primaryWs = `ws://${primaryIp}:${port}`;
 
       console.log(`
-openLog server running!
-
-  Local:    ${localUrl}
-  Network:  ${networkUrl}
-
-  Open ${localUrl} in browser to view devices
-
-  按 Ctrl+C 停止服务器
-      `);
+┌─────────────────────────────────────────────────────┐
+│              openLog  已启动 🚀                      │
+├─────────────────────────────────────────────────────┤
+│  PC 监控面板                                         │
+│    本机:   ${localUrl}
+│  局域网（所有可用网卡）：
+${networkLines.split('\n').map(l => `│    ${l}`).join('\n')}
+├─────────────────────────────────────────────────────┤
+│  SDK 接入（选择上方对应网络的 server 地址粘贴）       │
+│                                                     │
+│  <script src="https://unpkg.com/openlog@latest      │
+│    /dist/openlog.iife.js"></script>                 │
+│  <script>                                           │
+│    OpenLog.init({                                   │
+│      projectId: 'my-app',                           │
+│      server: '${primaryWs}',
+│      lang: 'zh'                                     │
+│    })                                               │
+│  </script>                                         │
+│                                                     │
+│  ⚠️  手机与电脑不在同一 WiFi？                        │
+│     从上方局域网列表选择手机可达的网卡地址替换 server │
+├─────────────────────────────────────────────────────┤
+│  MCP 配置（AI 工具接入）                             │
+│    运行: npx openlog init  自动写入 MCP 配置         │
+└─────────────────────────────────────────────────────┘
+  按 Ctrl+C 停止   端口: ${port}   (切换端口: openlog -p <port>)
+`);
 
       resolve();
     });

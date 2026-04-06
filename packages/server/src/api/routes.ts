@@ -1,10 +1,16 @@
 import { Router } from 'express';
 import { DeviceStore, LogStore, NetworkStore, StorageStore, DOMStore, PerformanceStore, ScreenshotStore, PerfRunStore } from '../store/index.js';
 import { createDeviceRoutes } from './devices.js';
+import { createIngestRoute } from './ingest.js';
 
 export function createRoutes(deviceStore: DeviceStore, logStore: LogStore, networkStore: NetworkStore, storageStore: StorageStore, domStore: DOMStore, performanceStore: PerformanceStore, screenshotStore: ScreenshotStore, perfRunStore: PerfRunStore): Router {
   const router = Router();
   const deviceRoutes = createDeviceRoutes(deviceStore, logStore, networkStore, storageStore, domStore, performanceStore, screenshotStore, perfRunStore);
+
+  // ── 外部数据接入（统一 Envelope 标准）──────────────────────────────
+  router.post('/api/ingest', createIngestRoute({
+    deviceStore, logStore, networkStore, storageStore, performanceStore, screenshotStore
+  }));
 
   router.get('/api/devices', deviceRoutes.listDevices);
   router.get('/api/devices/:deviceId', deviceRoutes.getDevice);
