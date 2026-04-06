@@ -44,6 +44,21 @@ class OpenLogWsClient {
     this._connect();
   }
 
+  disconnect(): void {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+    this.ready = false;
+    if (this.ws) {
+      this.ws.removeAllListeners();
+      this.ws.close();
+      this.ws = null;
+    }
+    this.buffers.clear();
+    this.devices = [];
+  }
+
   private _connect(): void {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) return;
 

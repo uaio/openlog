@@ -1,6 +1,6 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { resolve, join } from 'path';
-import { networkInterfaces } from 'os';
+import { networkInterfaces, homedir } from 'os';
 
 export interface InitOptions {
   forTool?: string;
@@ -39,6 +39,71 @@ function getMcpEntry(port: number) {
   };
 }
 
+const CLAUDE_COMMANDS: Record<string, string> = {
+  'start.md': `# 启动 openLog 监控
+
+调用 \`start_openlog\` MCP 工具启动 openLog Server 并建立 WebSocket 长连接。
+
+启动成功后：
+1. 打印服务地址和所有可用的 IPv4 地址（方便手机连接）
+2. 提示用户在 H5 页面引入 SDK 并初始化
+3. 调用 \`list_devices\` 工具检查是否有设备已连接
+
+如果服务已经在运行，跳过启动直接检查设备连接状态。
+`,
+
+  'stop.md': `# 停止 openLog 监控
+
+调用 \`stop_openlog\` MCP 工具断开 WebSocket 连接并关闭 openLog Server。
+
+停止前先打印当前连接的设备数量，停止后确认服务已关闭。
+`,
+
+  'status.md': `# openLog 连接状态
+
+调用 \`health_check\` MCP 工具，然后调用 \`list_devices\` 工具。
+
+输出以下信息：
+- Server 是否运行中（地址 + 端口）
+- WebSocket 连接状态
+- 当前在线设备列表（deviceId、平台、页面 URL、最后心跳时间）
+- 如果没有设备连接，提示 SDK 初始化代码片段
+`,
+
+  'logs.md': `# 查看最新日志
+
+调用 \`list_devices\` 获取当前在线设备。
+
+如果只有一个设备，直接调用 \`get_console_logs\` 获取最近 50 条日志。
+如果有多个设备，列出设备列表让用户选择（或取第一个设备）。
+
+输出日志时：
+- 错误（error/warn）用醒目标记 ⚠️ / ❌ 标出
+- 按时间倒序排列，最新的在最前面
+- 如果有 JS 报错，自动分析可能的原因
+`,
+
+  'screenshot.md': `# 截取当前页面截图
+
+调用 \`list_devices\` 获取当前在线设备。
+
+如果只有一个设备，直接调用 \`take_screenshot\` 对该设备截图。
+如果有多个设备，取第一个在线设备截图。
+
+截图完成后展示图片，并简要描述页面当前状态（标题、可见元素、是否有错误提示等）。
+`,
+};
+
+function writeClaudeCommands(): void {
+  const commandsDir = join(homedir(), '.claude', 'commands', 'openlog');
+  mkdirSync(commandsDir, { recursive: true });
+  for (const [filename, content] of Object.entries(CLAUDE_COMMANDS)) {
+    writeFileSync(join(commandsDir, filename), content, 'utf-8');
+  }
+  console.log(`  ✅ 已写入 ~/.claude/commands/openlog/ (5 个命令)`);
+  console.log(`     /openlog:start  /openlog:stop  /openlog:status  /openlog:logs  /openlog:screenshot`);
+}
+
 const AI_TOOLS: AIToolConfig[] = [
   {
     name: 'Claude Code',
@@ -53,6 +118,7 @@ const AI_TOOLS: AIToolConfig[] = [
       config.mcpServers.openlog = mcpEntry;
       writeFileSync(configFile, JSON.stringify(config, null, 2));
       console.log(`  ✅ 已写入 .claude.json`);
+      writeClaudeCommands();
     }
   },
   {

@@ -1,7 +1,7 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ListToolsRequestSchema, ListPromptsRequestSchema, GetPromptRequestSchema } from '@modelcontextprotocol/sdk/types.js';
-import { listDevices, getConsoleLogs, getNetworkRequests, watchLogs, getStorage, getPageContext, executeJs, takeScreenshot, reloadPage, setStorage, clearStorage, highlightElement, zenMode, networkThrottle, addMock, removeMock, clearMocks, healthCheck, aiAnalyze, startPerfRun, stopPerfRun, getPerfReport, verifyCheckpoint, startMonitor, pollMonitor, stopMonitor, listMonitors, initDevSession } from './tools/index.js';
+import { listDevices, getConsoleLogs, getNetworkRequests, watchLogs, getStorage, getPageContext, executeJs, takeScreenshot, reloadPage, setStorage, clearStorage, highlightElement, zenMode, networkThrottle, addMock, removeMock, clearMocks, healthCheck, aiAnalyze, startPerfRun, stopPerfRun, getPerfReport, verifyCheckpoint, startMonitor, pollMonitor, stopMonitor, listMonitors, initDevSession, startOpenlog, stopOpenlog } from './tools/index.js';
 import { startEmbeddedServer, stopEmbeddedServer, type EmbeddedServerConfig } from './launcher.js';
 import { wsClient } from './ws-client.js';
 import { API_BASE_URL } from './config.js';
@@ -77,11 +77,6 @@ function setupGlobalErrorHandlers(server: Server): void {
 }
 
 export async function startMCPServer(config?: EmbeddedServerConfig): Promise<void> {
-  // 启动内嵌服务器
-  console.error('[openLog] Starting embedded server...');
-  const { url } = await startEmbeddedServer(config);
-  console.error(`[openLog] Embedded server running at ${url}`);
-
   const server = new Server(
     {
       name: 'openlog-mcp',
@@ -239,6 +234,16 @@ export async function startMCPServer(config?: EmbeddedServerConfig): Promise<voi
           name: initDevSession.name,
           description: initDevSession.description,
           inputSchema: initDevSession.inputSchema
+        },
+        {
+          name: startOpenlog.name,
+          description: startOpenlog.description,
+          inputSchema: startOpenlog.inputSchema
+        },
+        {
+          name: stopOpenlog.name,
+          description: stopOpenlog.description,
+          inputSchema: stopOpenlog.inputSchema
         }
       ]
     };
@@ -510,6 +515,16 @@ ai_analyze()     → 无高优先级问题
           return { content: [{ type: 'text', text: JSON.stringify(r, null, 2) }] };
         }
 
+        case 'start_openlog': {
+          const r = await startOpenlog.execute(args as { port?: number; openBrowser?: boolean });
+          return { content: [{ type: 'text', text: JSON.stringify(r, null, 2) }] };
+        }
+
+        case 'stop_openlog': {
+          const r = await stopOpenlog.execute(args as Record<string, never>);
+          return { content: [{ type: 'text', text: JSON.stringify(r, null, 2) }] };
+        }
+
         default:
           throw new Error(`Unknown tool: ${name}`);
       }
@@ -527,8 +542,5 @@ ai_analyze()     → 无高优先级问题
   const transport = new StdioServerTransport();
   await server.connect(transport);
 
-  // 以 viewer 身份连接 Server WS，实现实时数据推送和指令下发
-  wsClient.connect(API_BASE_URL);
-
-  console.error('openLog MCP Server running on stdio');
+  console.error('openLog MCP Server running on stdio — use /openlog:start to begin monitoring');
 }
