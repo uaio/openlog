@@ -75,7 +75,7 @@ const CLAUDE_COMMANDS: Record<string, string> = {
 调用 \`list_devices\` 获取当前在线设备，然后：
 
 **优先查看 checkpoint 日志（验证开发节点）：**
-调用 \`get_checkpoints\` 获取所有 [checkpoint] 埋点日志，按节点名称分组展示，说明哪些节点已执行、哪些缺失。
+调用 \`get_checkpoints\` 获取所有 @openlog[checkpoint] 埋点日志，按节点名称分组展示，说明哪些节点已执行、哪些缺失。
 
 **查看全部日志：**
 调用 \`get_console_logs\` 获取最近 50 条日志。
@@ -84,6 +84,18 @@ const CLAUDE_COMMANDS: Record<string, string> = {
 - checkpoint 链路：按时间顺序展示节点路径 A → B → C
 - 错误（error/warn）用 ⚠️ / ❌ 标出
 - 如果有节点缺失或有 JS 报错，自动分析可能原因
+`,
+
+  'clean.md': `# 清除 @openlog 调试日志
+
+验证通过后，从代码中删除所有 @openlog 开发期日志。
+
+执行步骤：
+1. 在项目代码目录（src/ 或用户指定目录）中搜索所有包含 \`@openlog\` 的文件
+2. 逐文件删除所有包含 \`@openlog\` 的 console.log 行
+3. 列出清除的文件和行数，确认没有遗漏
+
+注意：只删除 console.log 中带 @openlog 前缀的行，不要删除普通业务逻辑代码。
 `,
 
   'screenshot.md': `# 截取当前页面截图
@@ -103,8 +115,8 @@ function writeClaudeCommands(): void {
   for (const [filename, content] of Object.entries(CLAUDE_COMMANDS)) {
     writeFileSync(join(commandsDir, filename), content, 'utf-8');
   }
-  console.log(`  ✅ 已写入 ~/.claude/commands/openlog/ (5 个命令)`);
-  console.log(`     /openlog:start  /openlog:stop  /openlog:status  /openlog:logs  /openlog:screenshot`);
+  console.log(`  ✅ 已写入 ~/.claude/commands/openlog/ (6 个命令)`);
+  console.log(`     /openlog:start  /openlog:stop  /openlog:status  /openlog:logs  /openlog:screenshot  /openlog:clean`);
 }
 
 const AI_TOOLS: AIToolConfig[] = [

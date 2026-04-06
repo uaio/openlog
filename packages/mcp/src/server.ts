@@ -283,7 +283,7 @@ export async function startMCPServer(config?: EmbeddedServerConfig): Promise<voi
 
 ## 核心原则
 
-**在代码关键节点埋入 console.log checkpoint → 用户跑一遍 → 读取 checkpoint 日志验证**
+**在代码关键节点埋入 @openlog checkpoint 日志 → 用户跑一遍 → 读取验证 → 验证通过后清除**
 
 这比写单元测试更直接：在真实设备上验证真实行为。
 
@@ -292,36 +292,34 @@ export async function startMCPServer(config?: EmbeddedServerConfig): Promise<voi
 ## 标准埋点格式
 
 \`\`\`js
-// 格式：console.log('[checkpoint] 节点名: 描述', { 可选附加数据 })
-console.log('[checkpoint] login: 用户点击登录按钮')
-console.log('[checkpoint] login: 接口请求发出', { url: '/api/login', method: 'POST' })
-console.log('[checkpoint] login: 响应成功', { status: 200 })
-console.log('[checkpoint] login: token 已写入', { hasToken: !!localStorage.getItem('token') })
+// 格式：console.log('@openlog[checkpoint] 节点名: 描述', { 可选附加数据 })
+console.log('@openlog[checkpoint] login: 用户点击登录按钮')
+console.log('@openlog[checkpoint] login: 接口请求发出', { url: '/api/login', method: 'POST' })
+console.log('@openlog[checkpoint] login: 响应成功', { status: 200 })
+console.log('@openlog[checkpoint] login: token 已写入', { hasToken: !!localStorage.getItem('token') })
 \`\`\`
 
 **规则：**
-- 前缀固定为 \`[checkpoint]\`，openLog 工具专门过滤此前缀
+- 前缀固定为 \`@openlog[checkpoint]\`，openLog 专门识别此前缀
 - 节点名用功能名命名（login / cart / payment 等）
 - 描述清晰说明当前步骤
 - 附加数据帮助判断状态是否正确
+- **所有带 @openlog 前缀的 log 在验证完成后必须清除**
 
 ---
 
 ## 开发步骤
 
 ### 1. 开始前
-\`\`\`
-/openlog:start   → 启动监控服务
-\`\`\`
-确认有设备在线：调用 list_devices
+确认监控已启动（/openlog:start），有设备在线：调用 list_devices
 
-### 2. 写代码时（同步进行）
-在每个关键节点加入 checkpoint 日志：
+### 2. 写代码时（同步埋点）
+在每个关键节点加入 @openlog checkpoint 日志：
 - 用户操作触发点（点击、提交）
 - 异步操作发起点（接口请求前）
 - 异步操作完成点（接口响应后）
 - 状态变更点（数据写入、页面跳转）
-- 异常处理点（catch 块里加 error checkpoint）
+- 异常处理点（catch 块里）
 
 ### 3. 请用户执行操作
 告知用户："请在手机上走一遍【功能名称】流程"
@@ -330,55 +328,65 @@ console.log('[checkpoint] login: token 已写入', { hasToken: !!localStorage.ge
 \`\`\`
 get_checkpoints(feature: "login")
 \`\`\`
-返回结果包含：
-- 哪些节点被执行了（按时间顺序）
-- 每个节点的附加数据
-- 缺失的节点（说明那段代码没有被执行）
+返回：哪些节点被执行、附加数据是否符合预期、缺失的节点
 
 ### 5. 判断结果
-- ✅ 所有预期节点都出现 → 功能跑通
-- ❌ 某节点缺失 → 该节点之前的代码有问题（条件判断、异步等待、路由等）
-- ❌ 附加数据不符合预期 → 逻辑错误（如 hasToken=false 说明存储失败）
+- ✅ 所有预期节点出现且数据正确 → 功能验证通过 → **执行清除步骤**
+- ❌ 某节点缺失 → 该节点前的代码有问题 → 修复后重新验证
+- ❌ 附加数据不符合预期 → 逻辑错误 → 修复后重新验证
 
 ### 6. 有报错时
 \`\`\`
 get_console_logs(level: "error")
 \`\`\`
-结合 checkpoint 链路定位报错位置。
+结合 checkpoint 链路定位报错位置
+
+### 7. 验证通过后 — 清除 @openlog 日志 ⚠️ 必须执行
+验证通过后，在代码文件中搜索并删除所有包含 \`@openlog\` 的 console.log 行：
+\`\`\`
+grep -r "@openlog" src/ --include="*.js" --include="*.ts" --include="*.vue" -l
+\`\`\`
+逐文件删除所有 \`console.log('@openlog...')\` 行。
+这些是开发期调试日志，不应出现在生产代码中。
 
 ---
 
 ## 典型示例
 
-**登录功能验证：**
+**埋点：**
 \`\`\`js
-// AI 在代码中埋入：
 async function handleLogin(username, password) {
-  console.log('[checkpoint] login: 开始登录', { username })
+  console.log('@openlog[checkpoint] login: 开始登录', { username })
   try {
-    console.log('[checkpoint] login: 发起请求')
+    console.log('@openlog[checkpoint] login: 发起请求')
     const res = await api.login(username, password)
-    console.log('[checkpoint] login: 请求成功', { status: res.status })
+    console.log('@openlog[checkpoint] login: 请求成功', { status: res.status })
     localStorage.setItem('token', res.data.token)
-    console.log('[checkpoint] login: token 已保存', { hasToken: true })
+    console.log('@openlog[checkpoint] login: token 已保存', { hasToken: true })
     router.push('/home')
-    console.log('[checkpoint] login: 跳转首页')
+    console.log('@openlog[checkpoint] login: 跳转首页')
   } catch (e) {
-    console.log('[checkpoint] login: 请求失败', { error: e.message })
+    console.log('@openlog[checkpoint] login: 请求失败', { error: e.message })
   }
 }
 \`\`\`
 
-用户登录后调用 \`get_checkpoints(feature: "login")\`，返回：
+**验证通过后清除，代码变为：**
+\`\`\`js
+async function handleLogin(username, password) {
+  try {
+    const res = await api.login(username, password)
+    localStorage.setItem('token', res.data.token)
+    router.push('/home')
+  } catch (e) {
+    // handle error
+  }
+}
 \`\`\`
-✅ 共发现 5 个检测点：login:开始登录 → login:发起请求 → login:请求成功 → login:token已保存 → login:跳转首页
-\`\`\`
-
-如果只到"发起请求"就断了，说明接口调用出错，结合 get_console_logs(level:"error") 查原因。
 
 ---
 
-**记住：每个功能节点完成后必须验证，不得跳过。checkpoint 是你和设备之间的沟通语言。**`
+**记住：@openlog 日志是开发期工具，验证通过即清除，不进入生产代码。**`
             }
           }
         ]
