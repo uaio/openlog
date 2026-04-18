@@ -1,55 +1,57 @@
+**English** | [中文](./README.zh-CN.md)
+
 # openLog
 
-> 首款面向 AI Agent 的前端 H5 数据监控工具 — 实时采集、PC 可视化、AI 可查询、开放接入
+> The first frontend H5 monitoring tool built for AI Agents — real-time collection, PC visualization, AI-queryable, open integration.
 
-**开发 H5 页面，你有没有遇到这些问题：**
-- 在手机上看到白屏，不知道哪里报错了
-- 接口调没调、参数对不对，只能靠猜
-- AI 帮你写了代码，但你不知道在真机上跑没跑通
+**Developing H5 mobile pages? Ever run into these problems?**
+- White screen on the phone, no idea where it crashed
+- Can't tell if API calls fired or if params are correct
+- AI wrote your code, but you can't verify it actually works on a real device
 
-**openLog 解决这些问题。** 在 H5 页面嵌入一行代码，手机上发生的一切——日志、请求、存储、性能——实时同步到你的电脑，也同步给 AI Agent，让 AI 能在真实设备上验证它写的每一行代码。
+**openLog solves this.** Embed one line of code in your H5 page — everything happening on the phone (logs, requests, storage, performance) syncs to your PC in real-time, and also syncs to AI Agents, letting AI verify every line of code it writes on real devices.
 
-openLog 有三种用法，按需选择，互相独立：
+openLog has three usage modes — pick what fits, they're independent:
 
-| 模式 | 适合场景 | 如何使用 |
-|------|---------|---------|
-| **仅 SDK** | 本地调试，不需要远程 | 引入 SDK，本机直接打开 Eruda 面板 |
-| **SDK + PC 面板** | 远程监控，团队协作 | `npx @openlog/cli` 启动服务 |
-| **SDK + Claude Code** | AI 辅助开发，自动验证 | 再执行 `npx @openlog/cli init` 配置 MCP |
+| Mode | Best For | How to Use |
+|------|----------|------------|
+| **SDK Only** | Local debugging, no network needed | Add SDK, Eruda panel opens on device |
+| **SDK + PC Panel** | Remote monitoring, team collaboration | `npx @openlog/cli` to start server |
+| **SDK + Claude Code** | AI-assisted development, auto-verification | Then run `npx @openlog/cli init` for MCP config |
 
-> 📖 **[完整调试流程指南（小白版）](./docs/debug-flow-guide.md)** — 从零开始，每种模式的详细安装和使用步骤。
+> 📖 **[Complete Debug Flow Guide](./docs/debug-flow-guide.md)** — Step-by-step setup and usage for each mode.
 
-**同时，openLog 是一个开放数据平台**：任何系统（CI/CD、服务端、Native App、第三方工具）均可通过标准接口推送数据，供 PC 面板展示和 AI 工具查询。
+**openLog is also an open data platform**: any system (CI/CD, backend, Native apps, third-party tools) can push data via standard APIs for PC panel display and AI tool querying.
 
 ---
 
-## ✨ 核心能力
+## ✨ Core Capabilities
 
-### 📡 实时数据采集（移动端 SDK）
-| 采集项 | 说明 |
-|--------|------|
-| **Console** | log / warn / error / info，保留原始参数富文本 |
-| **网络请求** | XHR + Fetch 拦截，含请求体/响应体/耗时 |
-| **Storage** | localStorage / sessionStorage / Cookie 实时监听 |
-| **DOM 快照** | 页面结构序列化，响应 PC 刷新指令 |
-| **性能数据** | FPS + Web Vitals (LCP/CLS/FCP/TTFB/INP) + 长任务 + 资源加载 + 交互延迟 |
-| **截图** | html2canvas 截取当前页面 |
-| **错误捕获** | 全局 JS 错误 + 未处理 Promise rejection |
+### 📡 Real-time Data Collection (Mobile SDK)
+| Collector | Description |
+|-----------|-------------|
+| **Console** | log / warn / error / info, preserves original rich-text arguments |
+| **Network** | XHR + Fetch interception, includes request/response bodies + timing |
+| **Storage** | localStorage / sessionStorage / Cookie real-time monitoring |
+| **DOM Snapshot** | Page structure serialization, responds to PC refresh commands |
+| **Performance** | FPS + Web Vitals (LCP/CLS/FCP/TTFB/INP) + Long Tasks + Resource Loading + Interaction Delay |
+| **Screenshot** | html2canvas captures current page |
+| **Error Capture** | Global JS errors + unhandled Promise rejections |
 
-### 🖥️ PC 可视化面板（9 个 Tab）
-| Tab | 功能 |
-|-----|------|
-| 📝 控制台 | 实时日志流 + JS 远程执行 + 日志导出 + 网速模拟 |
-| 🌐 网络 | 请求瀑布流，支持过滤 |
-| 💾 存储 | localStorage / sessionStorage / Cookie 查看与写入 |
-| 🌲 Element | DOM 树结构查看 |
-| 📊 Performance | FPS 折线图 + Web Vitals + 长任务 + 资源时序 |
-| 🏁 跑分 | 性能跑分报告（评分 + 等级 + 问题建议 + 历史对比） |
-| 🎭 Mock | API Mock 规则管理（URL 正则匹配） |
-| 🩺 健康 | 页面健康检查（错误数/内存/长任务/Vitals 综合评分） |
-| 🤖 AI 分析 | 汇总全量数据，生成问题清单与优化建议 |
+### 🖥️ PC Visualization Panel (9 Tabs)
+| Tab | Function |
+|-----|----------|
+| 📝 Console | Real-time log stream + Remote JS execution + Log export + Network throttling |
+| 🌐 Network | Request waterfall with filtering |
+| 💾 Storage | localStorage / sessionStorage / Cookie viewing & editing |
+| 🌲 Element | DOM tree structure viewer |
+| 📊 Performance | FPS chart + Web Vitals + Long Tasks + Resource timeline |
+| 🏁 Benchmark | Performance scoring report (score + grade + recommendations + history) |
+| 🎭 Mock | API Mock rule management (URL regex matching) |
+| 🩺 Health | Page health check (errors/memory/long tasks/Vitals composite score) |
+| 🤖 AI Analysis | Aggregate all data, generate issue list & optimization suggestions |
 
-### 🤖 MCP 工具集（AI 直接调用）
+### 🤖 MCP Toolset (AI-callable)
 ```
 list_devices          get_console_logs      get_network_requests
 watch_logs            get_storage           get_page_context
@@ -65,169 +67,169 @@ start_monitor         poll_monitor          stop_monitor
 
 ---
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
-### 一、启动服务（零安装）
+### 1. Start the Server (Zero Install)
 
 ```bash
 npx @openlog/cli
-# 启动后终端会打印所有局域网 IP 和 SDK 接入代码，直接复制使用
-# 指定端口：npx @openlog/cli -p 8080
+# Terminal prints all LAN IPs and SDK snippet — just copy and use
+# Custom port: npx @openlog/cli -p 8080
 ```
 
-### 二、配置 AI 工具（自动检测）
+### 2. Configure AI Tools (Auto-detection)
 
 ```bash
 npx @openlog/cli init
-# 自动检测已安装的 AI 工具（Claude Code / Cursor / Windsurf）
-# 一键写入 MCP 配置 + Claude Code slash commands，重启 AI 工具即可
+# Auto-detects installed AI tools (Claude Code / Cursor / Windsurf)
+# Writes MCP config + Claude Code slash commands in one step
 
-# 指定工具：
+# Specify tool:
 npx @openlog/cli init --for=claude
 npx @openlog/cli init --for=cursor
 npx @openlog/cli init --for=windsurf
 ```
 
-`init` 对 Claude Code 额外写入 `~/.claude/commands/openlog/`，安装后可直接使用：
+For Claude Code, `init` also writes `~/.claude/commands/openlog/` — available immediately:
 
-| Slash Command | 功能 |
+| Slash Command | Function |
 |---|---|
-| `/openlog:setup` | **一键从零到就绪**（检测 SDK→注入→启动→确认连接） |
-| `/openlog:start` | 启动监控服务 + 建立 WS 连接 |
-| `/openlog:stop` | 停止监控服务 |
-| `/openlog:status` | 查看设备连接状态 |
-| `/openlog:logs` | 查看日志 + checkpoint 链路 |
-| `/openlog:screenshot` | 截取当前页面截图 |
-| `/openlog:clean` | 清除代码中所有 `@openlog` 调试日志 |
+| `/openlog:setup` | **One-click zero-to-ready** (detect SDK → inject → start → confirm) |
+| `/openlog:start` | Start monitoring + establish WS connection |
+| `/openlog:stop` | Stop monitoring |
+| `/openlog:status` | Check device connection status |
+| `/openlog:logs` | View logs + checkpoint trace |
+| `/openlog:screenshot` | Capture current page screenshot |
+| `/openlog:clean` | Remove all `@openlog` debug logs from code |
 
-### 三、接入移动端 SDK
+### 3. Integrate the Mobile SDK
 
 ```html
-<!-- CDN 方式（推荐）——服务启动后终端直接输出以下代码 -->
+<!-- CDN (recommended) — server prints this snippet on startup -->
 <script src="https://unpkg.com/@openlog/sdk@latest/dist/openlog.iife.js"></script>
 <script>
   OpenLog.init({
     projectId: 'my-app',
-    server: 'ws://192.168.x.x:38291',  // 服务启动时会打印正确 IP
-    lang: 'zh'
+    server: 'ws://192.168.x.x:38291',  // Correct IP is printed on server start
+    lang: 'en'
   })
 </script>
 
-<!-- 纯本地模式（无需服务器，仅 Eruda 调试面板）-->
+<!-- Local-only mode (no server needed, Eruda panel only) -->
 <script>
-  OpenLog.init({ projectId: 'my-app', lang: 'zh' })
+  OpenLog.init({ projectId: 'my-app', lang: 'en' })
 </script>
 ```
 
 ```bash
-# npm 方式
+# npm install
 npm install @openlog/sdk
 ```
 
 ```javascript
 import OpenLog from '@openlog/sdk'
-new OpenLog({ projectId: 'my-app', server: 'ws://192.168.x.x:38291', lang: 'zh' })
+new OpenLog({ projectId: 'my-app', server: 'ws://192.168.x.x:38291', lang: 'en' })
 ```
 
-### 四、访问 PC 监控面板
+### 4. Open the PC Panel
 
-浏览器打开 `http://localhost:38291`，从左侧设备列表选择设备即可。
+Open `http://localhost:38291` in your browser, select a device from the sidebar.
 
 ---
 
-## 🤖 AI 开发工作流
+## 🤖 AI Development Workflow
 
-这是 openLog 的核心场景：AI 工具在开发 H5 功能时，通过真实设备数据验证每个关键节点。
+This is openLog's core scenario: AI tools verify each development milestone using real device data while building H5 features.
 
-### 完整流程
+### Complete Flow
 
-**第 1 步：启动监控**
+**Step 1: Start Monitoring**
 
 ```
 /openlog:start
 ```
 
-Claude 调用 `start_openlog` → 服务启动 → WS 长连接建立 → 自动打开 PC 面板。
+Claude calls `start_openlog` → server starts → WS connection established → PC panel auto-opens.
 
 ---
 
-**第 2 步：开发 + 埋点（AI 自动完成）**
+**Step 2: Develop + Instrument (AI does this automatically)**
 
-AI 在代码关键节点自动埋入 `@openlog[checkpoint]` 日志：
+AI automatically inserts `@openlog[checkpoint]` logs at key code nodes:
 
 ```javascript
 async function handleLogin(username, password) {
-  console.log('@openlog[checkpoint] login: 开始登录', { username })
+  console.log('@openlog[checkpoint] login: start', { username })
   try {
-    console.log('@openlog[checkpoint] login: 发起请求')
+    console.log('@openlog[checkpoint] login: sending request')
     const res = await api.login(username, password)
-    console.log('@openlog[checkpoint] login: 请求成功', { status: res.status })
+    console.log('@openlog[checkpoint] login: success', { status: res.status })
     localStorage.setItem('token', res.data.token)
-    console.log('@openlog[checkpoint] login: token 已保存', { hasToken: true })
+    console.log('@openlog[checkpoint] login: token saved', { hasToken: true })
     router.push('/home')
-    console.log('@openlog[checkpoint] login: 跳转首页')
+    console.log('@openlog[checkpoint] login: navigated to home')
   } catch (e) {
-    console.log('@openlog[checkpoint] login: 请求失败', { error: e.message })
+    console.log('@openlog[checkpoint] login: failed', { error: e.message })
   }
 }
 ```
 
-**埋点格式约定：**
+**Checkpoint format convention:**
 ```
-console.log('@openlog[checkpoint] 功能名: 步骤描述', { 可选附加数据 })
-                ^^^^^^^^ openLog 统一标识符
+console.log('@openlog[checkpoint] featureName: stepDescription', { optionalData })
+                ^^^^^^^^ openLog unified identifier
 ```
 
-`@openlog` 是 openLog 所有开发期日志的标识前缀，方便统一查询和清除。
+`@openlog` is the unified prefix for all openLog development-time logs, enabling easy querying and cleanup.
 
 ---
 
-**第 3 步：真机验证**
+**Step 3: Real Device Verification**
 
-用户在手机上走一遍流程，然后：
+User walks through the flow on their phone, then:
 
 ```
 /openlog:logs
 ```
 
-或告诉 Claude："登录流程跑完了，帮我验证一下"
+Or tell Claude: "I finished the login flow, verify it for me"
 
-Claude 调用 `get_checkpoints(feature: "login")`，返回：
+Claude calls `get_checkpoints(feature: "login")`, returns:
 
 ```
-✅ 共发现 5 个检测点：
-  开始登录 → 发起请求 → 请求成功 → token已保存 → 跳转首页
+✅ Found 5 checkpoints:
+  start → sending request → success → token saved → navigated to home
 
-附加数据：
-  请求成功: { status: 200 }
-  token已保存: { hasToken: true }
+Attached data:
+  success: { status: 200 }
+  token saved: { hasToken: true }
 ```
 
 ---
 
-**第 4 步：分析结果**
+**Step 4: Analyze Results**
 
-| 结果 | 含义 | 下一步 |
-|------|------|--------|
-| ✅ 所有节点出现且数据正确 | 功能验证通过 | 执行清除步骤 |
-| ❌ 某节点缺失 | 该节点前的代码未执行（条件判断/异步/路由问题） | `get_console_logs(level: "error")` 定位 |
-| ❌ 附加数据不符合预期 | 逻辑错误（如 `hasToken: false`） | 检查对应逻辑并修复 |
+| Result | Meaning | Next Step |
+|--------|---------|-----------|
+| ✅ All nodes present with correct data | Feature verified | Run cleanup |
+| ❌ A node is missing | Code before that node didn't execute (condition/async/routing issue) | `get_console_logs(level: "error")` to locate |
+| ❌ Attached data doesn't match | Logic error (e.g., `hasToken: false`) | Check and fix the logic |
 
 ---
 
-**第 5 步：清除 @openlog 日志（验证通过后必须执行）**
+**Step 5: Clean up @openlog logs (required after verification)**
 
 ```
 /openlog:clean
 ```
 
-Claude 搜索代码中所有 `@openlog` 前缀的 console.log 行并删除。
+Claude searches and removes all `@openlog`-prefixed console.log lines from your code.
 
-**`@openlog` 日志是开发期工具，不应进入生产代码。**
+**`@openlog` logs are development tools — they must not ship to production.**
 
 ---
 
-**第 6 步：结束监控**
+**Step 6: Stop Monitoring**
 
 ```
 /openlog:stop
@@ -235,149 +237,150 @@ Claude 搜索代码中所有 `@openlog` 前缀的 console.log 行并删除。
 
 ---
 
-### 一图总结
+### Flow Diagram
 
 ```
-你                       Claude Code (AI)              真实手机
+You                      Claude Code (AI)              Real Phone
 │                              │                           │
 │  /openlog:start              │                           │
 │ ────────────────────────────►│ start_openlog()           │
-│                              │──── WS 长连接 ────────────►│
+│                              │──── WS connection ────────►│
 │                              │                           │
-│  "帮我写登录功能"             │                           │
-│ ────────────────────────────►│ 写代码 + 埋 @openlog 日志 │
+│  "Build me a login feature"  │                           │
+│ ────────────────────────────►│ writes code + @openlog    │
 │ ◄────────────────────────────│                           │
 │                              │                           │
-│  （手机上走登录流程）          │                      SDK 上报日志
+│  (walk through login on phone)│                     SDK reports
 │                              │◄──────────────────────────│
 │                              │                           │
-│  "验证一下" / /openlog:logs  │                           │
+│  "verify it" / /openlog:logs │                           │
 │ ────────────────────────────►│ get_checkpoints()         │
-│ ◄────────────────────────────│ ✅ 5个节点全部命中         │
+│ ◄────────────────────────────│ ✅ all 5 nodes hit        │
 │                              │                           │
 │  /openlog:clean              │                           │
-│ ────────────────────────────►│ 删除所有 @openlog 日志    │
+│ ────────────────────────────►│ removes @openlog logs     │
 ```
 
 ---
 
-## 📱 三种使用模式
+## 📱 Three Usage Modes
 
-### 模式一：仅 SDK（本地调试）
+### Mode A: SDK Only (Local Debugging)
 
-不需要启动任何服务，最轻量的使用方式。SDK 初始化后直接在手机上打开内置的 Eruda 调试面板。
+No server needed — the lightest option. SDK initializes and opens the built-in Eruda debug panel directly on the phone.
 
 ```html
 <script src="https://unpkg.com/@openlog/sdk@latest/dist/openlog.iife.js"></script>
 <script>
-  OpenLog.init({ projectId: 'my-app', lang: 'zh' })
-  // 页面左下角会出现调试入口
+  OpenLog.init({ projectId: 'my-app', lang: 'en' })
+  // Debug entry appears at bottom-left of the page
 </script>
 ```
 
-适合：快速排查问题、不方便连网络、纯本地开发。
+Best for: quick debugging, no network available, purely local development.
 
 ---
 
-### 模式二：SDK + PC 面板（远程监控）
+### Mode B: SDK + PC Panel (Remote Monitoring)
 
-启动服务后，手机数据实时推送到 PC 端可视化面板，支持多设备同时接入。
+Start the server, phone data streams to the PC visualization panel in real-time. Supports multiple devices simultaneously.
 
 ```bash
-npx @openlog/cli          # 启动，自动打印局域网 IP 和 SDK 接入代码
-npx @openlog/cli -p 8080  # 指定端口（手机和电脑不在同一 WiFi 时按需调整）
+npx @openlog/cli          # Start, auto-prints LAN IPs and SDK code
+npx @openlog/cli -p 8080  # Custom port
 ```
 
-PC 浏览器打开 `http://localhost:38291`，从左侧选择设备开始监控。
+Open `http://localhost:38291` in your PC browser, select a device to start monitoring.
 
-适合：远程调试、联调接口、性能分析、团队协作。
+Best for: remote debugging, API integration testing, performance analysis, team collaboration.
 
 ---
 
-### 模式三：SDK + Claude Code（AI 辅助开发）
+### Mode C: SDK + Claude Code (AI-Assisted Development)
 
-在模式一基础上，配置 MCP 让 Claude Code 接入实时数据流。AI 可自动检测并注入 SDK、验证开发节点、分析报错、执行远程操作。**不需要手动打开 PC 面板** —— Claude 就是你的调试面板。
+On top of Mode A, configure MCP so Claude Code connects to the real-time data stream. AI can auto-detect and inject SDK, verify development milestones, analyze errors, and execute remote operations. **No need to open the PC panel** — Claude IS your debug panel.
 
 ```bash
-npx @openlog/cli init     # 自动检测并配置 Claude Code / Cursor / Windsurf
+npx @openlog/cli init     # Auto-detect and configure Claude Code / Cursor / Windsurf
 ```
 
-重启 AI 工具后，Claude Code 里直接输入 `/openlog:start` 开始 AI 辅助开发。
+After restarting your AI tool, type `/openlog:start` in Claude Code to begin AI-assisted development.
 
-适合：AI Agent 开发、功能节点自动验证、AI 驱动的调试闭环。
+Best for: AI Agent development, automatic milestone verification, AI-driven debugging loops.
 
 ---
-## 🏗️ 架构
+
+## 🏗️ Architecture
 
 ```
 openLog/
 ├── packages/
-│   ├── types/      # 统一数据标准（@openlog/types）← 唯一类型来源
-│   ├── sdk/        # 移动端 SDK（数据采集 + Eruda 集成）
-│   ├── server/     # Node.js 服务（WebSocket + REST API）
-│   ├── web/        # PC 调试面板（React）
-│   └── mcp/        # MCP Server（AI 工具集）
+│   ├── types/      # Unified data standard (@openlog/types) ← single source of truth
+│   ├── sdk/        # Mobile SDK (data collection + Eruda integration)
+│   ├── server/     # Node.js server (WebSocket + REST API)
+│   ├── web/        # PC debug panel (React)
+│   └── mcp/        # MCP Server (AI toolset)
 ```
 
-### 数据流
+### Data Flow
 
 ```
-移动端 H5 SDK
-  └── DataBus（统一数据总线）
-        ├── Eruda 本地面板（独立可用）
-        └── WebSocket Reporter → Server（中控）
-                                    ├── PC Web 面板（viewer）
-                                    └── MCP AI 工具（viewer）
+Mobile H5 SDK
+  └── DataBus (unified data bus)
+        ├── Eruda local panel (independently usable)
+        └── WebSocket Reporter → Server (hub)
+                                    ├── PC Web Panel (viewer)
+                                    └── MCP AI Tools (viewer)
 
-外部系统（CI/CD / 服务端 / Native / 第三方）
-  └── POST /api/ingest ──────────→ Server（同上消费链路）
+External Systems (CI/CD / Backend / Native / Third-party)
+  └── POST /api/ingest ──────────→ Server (same consumption chain)
 ```
 
-**双向通信：** PC 面板和 MCP 不仅接收数据，还可向 SDK 下发指令（reload、execute_js、mock 等），Server 作为中控负责转发。
+**Bidirectional communication:** PC panel and MCP don't just receive data — they can send commands to the SDK (reload, execute_js, mock, etc.), with Server acting as the relay hub.
 
 ---
 
-## 📐 数据接入标准（OpenLog Envelope）
+## 📐 Data Integration Standard (OpenLog Envelope)
 
-所有数据——无论来自移动端 SDK、外部系统还是未来的 Native 平台——均遵循统一的 **Envelope 格式**。
+All data — whether from the mobile SDK, external systems, or future Native platforms — follows the unified **Envelope format**.
 
-### 基础格式
+### Base Format
 
 ```typescript
-// 完整类型定义：packages/types/src/
+// Full type definitions: packages/types/src/
 {
-  "v": "1",                    // Schema 版本
-  "platform": "web",           // 平台标识
+  "v": "1",                    // Schema version
+  "platform": "web",           // Platform identifier
   "device": {
-    "deviceId": "uuid",        // 设备唯一 ID
-    "projectId": "my-app",     // 项目标识
+    "deviceId": "uuid",        // Unique device ID
+    "projectId": "my-app",     // Project identifier
     "ua": "Mozilla/5.0...",
     "screen": "390x844",
     "pixelRatio": 3,
-    "language": "zh-CN",
+    "language": "en-US",
     "url": "https://..."
   },
   "tabId": "tab-uuid",
-  "ts": 1712345678901,         // Unix 毫秒时间戳
-  "type": "console",           // 事件类型
-  "data": { ... }              // 具体事件数据
+  "ts": 1712345678901,         // Unix timestamp (ms)
+  "type": "console",           // Event type
+  "data": { ... }              // Event-specific data
 }
 ```
 
-### platform 支持值
+### Supported platform Values
 
-| 值 | 说明 | 状态 |
-|----|------|------|
-| `web` | 浏览器 H5 | ✅ 已支持 |
-| `react-native` | React Native | 🔜 规划中 |
-| `flutter` | Flutter / Dart | 🔜 规划中 |
-| `miniprogram` | 微信/支付宝小程序 | 🔜 规划中 |
-| `unknown` | 其他 / 自定义 | ✅ 兼容 |
+| Value | Description | Status |
+|-------|-------------|--------|
+| `web` | Browser H5 | ✅ Supported |
+| `react-native` | React Native | 🔜 Planned |
+| `flutter` | Flutter / Dart | 🔜 Planned |
+| `miniprogram` | WeChat / Alipay Mini Programs | 🔜 Planned |
+| `unknown` | Other / Custom | ✅ Compatible |
 
-### type 事件类型及 data 结构
+### Event Types and Data Structures
 
 <details>
-<summary><strong>console</strong> — 控制台日志</summary>
+<summary><strong>console</strong> — Console logs</summary>
 
 ```json
 {
@@ -390,7 +393,7 @@ openLog/
 </details>
 
 <details>
-<summary><strong>network</strong> — 网络请求</summary>
+<summary><strong>network</strong> — Network requests</summary>
 
 ```json
 {
@@ -407,7 +410,7 @@ openLog/
 </details>
 
 <details>
-<summary><strong>error</strong> — JS 错误/未处理 Promise</summary>
+<summary><strong>error</strong> — JS errors / unhandled Promises</summary>
 
 ```json
 {
@@ -422,7 +425,7 @@ openLog/
 </details>
 
 <details>
-<summary><strong>performance</strong> — 性能数据</summary>
+<summary><strong>performance</strong> — Performance data</summary>
 
 ```json
 {
@@ -438,22 +441,22 @@ openLog/
 <details>
 <summary><strong>storage / dom / screenshot / perf_run / lifecycle / custom</strong></summary>
 
-完整类型定义见 [`packages/types/src/events/index.ts`](./packages/types/src/events/index.ts)
+Full type definitions at [`packages/types/src/events/index.ts`](./packages/types/src/events/index.ts)
 
 </details>
 
 ---
 
-## 🔌 外部数据接入（POST /api/ingest）
+## 🔌 External Data Integration (POST /api/ingest)
 
-任何系统均可通过 REST 接口向 openLog 推送数据，数据将实时出现在 PC 面板和 MCP 工具中。
+Any system can push data to openLog via REST API — data appears in the PC panel and MCP tools in real-time.
 
 ```
 POST http://localhost:38291/api/ingest
 Content-Type: application/json
 ```
 
-支持**单条**或**批量**（最多 500 条/次）：
+Supports **single** or **batch** (up to 500 items/request):
 
 ```bash
 curl -X POST http://localhost:38291/api/ingest \
@@ -461,33 +464,33 @@ curl -X POST http://localhost:38291/api/ingest \
   -d '{
     "v": "1",
     "platform": "unknown",
-    "device": { "deviceId": "ci-001", "projectId": "my-app", "ua": "CI", "screen": "n/a", "pixelRatio": 1, "language": "zh-CN" },
+    "device": { "deviceId": "ci-001", "projectId": "my-app", "ua": "CI", "screen": "n/a", "pixelRatio": 1, "language": "en-US" },
     "tabId": "build-456",
     "ts": 1712345678901,
     "type": "error",
-    "data": { "source": "uncaught", "message": "单测失败", "stack": "..." }
+    "data": { "source": "uncaught", "message": "Test failed", "stack": "..." }
   }'
 ```
 
-| 场景 | 说明 |
-|------|------|
-| **CI/CD 流水线** | 单测失败、构建错误实时推送，AI 自动分析 |
-| **服务端日志** | 接口异常推送到 openLog，与前端数据关联 |
-| **Native App** | React Native / Flutter 接入，复用同一套监控体系 |
-| **自定义采集** | 埋点数据、A/B 测试结果通过 `custom` 类型推送 |
+| Scenario | Description |
+|----------|-------------|
+| **CI/CD Pipeline** | Push test failures, build errors in real-time for AI analysis |
+| **Backend Logs** | Push API exceptions to openLog, correlate with frontend data |
+| **Native Apps** | React Native / Flutter integration, reuse the same monitoring stack |
+| **Custom Collection** | Analytics, A/B test results via `custom` event type |
 
 ---
 
-## 🏁 性能跑分
+## 🏁 Performance Benchmarking
 
 ```
-综合评分 = FPS(20%) + LCP(15%) + CLS(10%) + FCP(10%) +
-           TTFB(10%) + INP(10%) + 长任务(15%) + 资源(10%)
+Composite Score = FPS(20%) + LCP(15%) + CLS(10%) + FCP(10%) +
+                  TTFB(10%) + INP(10%) + Long Tasks(15%) + Resources(10%)
 ```
 
 ```javascript
 await logger.startPerfRun();
-// ... 执行用户操作 ...
+// ... perform user interactions ...
 const report = await logger.stopPerfRun();
 // { total: 87, grade: 'B', issues: [...] }
 ```
@@ -496,65 +499,65 @@ const report = await logger.stopPerfRun();
 
 ## 🔌 REST API
 
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| **POST** | **`/api/ingest`** | **外部数据接入（统一 Envelope 格式）** |
-| GET | `/api/devices` | 设备列表 |
-| GET | `/api/devices/:id/logs` | 控制台日志 |
-| GET | `/api/devices/:id/network` | 网络请求 |
-| GET | `/api/devices/:id/storage` | 存储快照 |
-| GET | `/api/devices/:id/performance` | 性能数据 |
-| GET | `/api/devices/:id/health` | 健康检查 |
-| POST | `/api/devices/:id/perf-run/start` | 开始跑分 |
-| POST | `/api/devices/:id/perf-run/stop` | 停止跑分 |
-| GET | `/api/devices/:id/perf-run` | 跑分历史 |
-| POST | `/api/devices/:id/execute` | 远程执行 JS |
-| POST | `/api/devices/:id/screenshot` | 触发截图 |
-| POST | `/api/devices/:id/network-throttle` | 网络节流 |
-| POST | `/api/devices/:id/mocks` | 添加 Mock |
-| DELETE | `/api/devices/:id/mocks/:mockId` | 删除 Mock |
+| Method | Path | Description |
+|--------|------|-------------|
+| **POST** | **`/api/ingest`** | **External data ingestion (unified Envelope format)** |
+| GET | `/api/devices` | Device list |
+| GET | `/api/devices/:id/logs` | Console logs |
+| GET | `/api/devices/:id/network` | Network requests |
+| GET | `/api/devices/:id/storage` | Storage snapshot |
+| GET | `/api/devices/:id/performance` | Performance data |
+| GET | `/api/devices/:id/health` | Health check |
+| POST | `/api/devices/:id/perf-run/start` | Start benchmark |
+| POST | `/api/devices/:id/perf-run/stop` | Stop benchmark |
+| GET | `/api/devices/:id/perf-run` | Benchmark history |
+| POST | `/api/devices/:id/execute` | Remote JS execution |
+| POST | `/api/devices/:id/screenshot` | Trigger screenshot |
+| POST | `/api/devices/:id/network-throttle` | Network throttling |
+| POST | `/api/devices/:id/mocks` | Add Mock rule |
+| DELETE | `/api/devices/:id/mocks/:mockId` | Delete Mock rule |
 
 ---
 
 ## 🗺️ Roadmap
 
-### 近期（已实现）
-- [x] Web H5 SDK + PC 监控面板 + MCP 工具集
-- [x] `@openlog/types` 统一数据标准（Envelope v1）
-- [x] `POST /api/ingest` 外部数据接入接口
-- [x] `npx @openlog/cli init` 一键配置 AI 工具 + Claude Code slash commands
-- [x] `@openlog[checkpoint]` 开发期埋点约定 + `get_checkpoints` 验证工具
-- [x] `/openlog:clean` 验证完成后自动清除调试日志
-- [x] `start_openlog` / `stop_openlog` 显式生命周期管理
-- [x] MCP Prompt 自动加载开发 SOP（连接即生效，无需 CLAUDE.md）
+### Near-term (Implemented)
+- [x] Web H5 SDK + PC monitoring panel + MCP toolset
+- [x] `@openlog/types` unified data standard (Envelope v1)
+- [x] `POST /api/ingest` external data ingestion API
+- [x] `npx @openlog/cli init` one-click AI tool configuration + Claude Code slash commands
+- [x] `@openlog[checkpoint]` development-time instrumentation + `get_checkpoints` verification
+- [x] `/openlog:clean` auto-cleanup of debug logs after verification
+- [x] `start_openlog` / `stop_openlog` explicit lifecycle management
+- [x] MCP Prompt auto-loads development SOP (works on connect, no CLAUDE.md needed)
 
-### 中期
-- [ ] **React Native SDK**（`platform: "react-native"`）
-- [ ] **小程序 SDK**（微信/支付宝，`platform: "miniprogram"`）
-- [ ] **PC 面板 `custom` 类型展示**（通用 JSON 树 + 自定义渲染插件）
-- [ ] **ingest 鉴权**（API Key + 项目级权限）
-- [ ] **数据持久化**（SQLite，重启后数据不丢失）
+### Mid-term
+- [ ] **React Native SDK** (`platform: "react-native"`)
+- [ ] **Mini Program SDK** (WeChat/Alipay, `platform: "miniprogram"`)
+- [ ] **PC panel `custom` type display** (generic JSON tree + custom render plugins)
+- [ ] **Ingest authentication** (API Key + project-level permissions)
+- [ ] **Data persistence** (SQLite, data survives restarts)
 
-### 长期
-- [ ] **Flutter SDK**（`platform: "flutter"`）
-- [ ] **云端版本**（不依赖局域网，支持远程设备）
-- [ ] **Envelope v2**（支持更多采集维度，向后兼容 v1）
-- [ ] **开放插件系统**（第三方 type 扩展 + PC 面板自定义 Tab）
+### Long-term
+- [ ] **Flutter SDK** (`platform: "flutter"`)
+- [ ] **Cloud version** (no LAN dependency, remote device support)
+- [ ] **Envelope v2** (more collection dimensions, backward-compatible with v1)
+- [ ] **Open plugin system** (third-party type extensions + custom PC panel tabs)
 
 ---
 
-## 💻 开发
+## 💻 Development
 
 ```bash
-pnpm build      # 构建所有包
-pnpm dev        # 开发模式（watch）
-pnpm test       # 运行测试
-pnpm start      # 启动服务器
+pnpm build      # Build all packages
+pnpm dev        # Dev mode (watch)
+pnpm test       # Run tests
+pnpm start      # Start server
 ```
 
 ---
 
-## 📄 许可证
+## 📄 License
 
 MIT © [openLog](https://github.com/uaio/openLog)
 
