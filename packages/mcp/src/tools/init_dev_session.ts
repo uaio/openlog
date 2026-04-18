@@ -1,7 +1,6 @@
-import { DeviceSelector } from '../lib/device-selector.js';
+import { sharedDeviceSelector as deviceSelector } from '../lib/device-selector.js';
 import { startMonitor } from './monitor.js';
 
-const deviceSelector = new DeviceSelector();
 
 export const initDevSession = {
   name: 'init_dev_session',

@@ -1,7 +1,6 @@
 import { wsClient } from '../ws-client.js';
-import { DeviceSelector } from '../lib/device-selector.js';
+import { sharedDeviceSelector as deviceSelector } from '../lib/device-selector.js';
 
-const deviceSelector = new DeviceSelector();
 
 export const reloadPage = {
   name: 'reload_page',

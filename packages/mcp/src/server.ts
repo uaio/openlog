@@ -1,7 +1,7 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ListToolsRequestSchema, ListPromptsRequestSchema, GetPromptRequestSchema } from '@modelcontextprotocol/sdk/types.js';
-import { listDevices, getConsoleLogs, getNetworkRequests, watchLogs, getStorage, getPageContext, executeJs, takeScreenshot, reloadPage, setStorage, clearStorage, highlightElement, zenMode, networkThrottle, addMock, removeMock, clearMocks, healthCheck, aiAnalyze, startPerfRun, stopPerfRun, getPerfReport, verifyCheckpoint, startMonitor, pollMonitor, stopMonitor, listMonitors, initDevSession, startOpenlog, stopOpenlog, getCheckpoints, ensureSdk } from './tools/index.js';
+import { listDevices, getConsoleLogs, getNetworkRequests, watchLogs, getStorage, getPageContext, executeJs, takeScreenshot, reloadPage, setStorage, clearStorage, highlightElement, zenMode, networkThrottle, addMock, removeMock, clearMocks, healthCheck, aiAnalyze, startPerfRun, stopPerfRun, getPerfReport, verifyCheckpoint, startMonitor, pollMonitor, stopMonitor, listMonitors, focusDevice, initDevSession, startOpenlog, stopOpenlog, getCheckpoints, ensureSdk } from './tools/index.js';
 import { startEmbeddedServer, stopEmbeddedServer, type EmbeddedServerConfig } from './launcher.js';
 import { wsClient } from './ws-client.js';
 import { API_BASE_URL } from './config.js';
@@ -100,6 +100,11 @@ export async function startMCPServer(config?: EmbeddedServerConfig): Promise<voi
           name: listDevices.name,
           description: listDevices.description,
           inputSchema: listDevices.inputSchema
+        },
+        {
+          name: focusDevice.name,
+          description: focusDevice.description,
+          inputSchema: focusDevice.inputSchema
         },
         {
           name: getConsoleLogs.name,
@@ -342,6 +347,8 @@ console.log('@openlog[checkpoint] login: token saved', { hasToken: !!localStorag
 
 ### 1. Before coding
 Confirm monitoring is started (\`start_openlog\` or /openlog:start), device is online: call \`list_devices\`
+- If multiple devices connected, call \`focus_device(deviceId)\` to lock the target device for this session
+- All subsequent tool calls will auto-target the focused device
 
 ### 2. While coding (embed checkpoints)
 Add @openlog checkpoint logs at every key node:
@@ -401,6 +408,9 @@ These are development-time debug logs and must NOT ship to production.
       switch (name) {
         case 'list_devices':
           return { content: [{ type: 'text', text: JSON.stringify(await listDevices.execute(args || {}), null, 2) }] };
+
+        case 'focus_device':
+          return { content: [{ type: 'text', text: JSON.stringify(await focusDevice.execute(args as any || {}), null, 2) }] };
 
         case 'get_console_logs': {
           if (!args) {

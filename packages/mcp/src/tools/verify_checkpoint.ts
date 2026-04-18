@@ -1,7 +1,6 @@
 import { API_BASE_URL } from '../config.js';
-import { DeviceSelector } from '../lib/device-selector.js';
+import { sharedDeviceSelector as deviceSelector } from '../lib/device-selector.js';
 
-const deviceSelector = new DeviceSelector();
 
 export interface CheckpointExpect {
   /** 不能有 error 级日志（默认 true） */

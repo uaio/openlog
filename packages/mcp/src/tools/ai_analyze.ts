@@ -1,7 +1,6 @@
 import { API_BASE_URL } from '../config.js';
-import { DeviceSelector } from '../lib/device-selector.js';
+import { sharedDeviceSelector as deviceSelector } from '../lib/device-selector.js';
 
-const deviceSelector = new DeviceSelector();
 
 export const aiAnalyze = {
   name: 'ai_analyze',

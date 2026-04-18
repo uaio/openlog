@@ -9,11 +9,13 @@ import { dirname, join } from 'path';
 
 export interface CLIOptions {
   port?: number;
+  host?: string;
   webDistPath?: string;
 }
 
 export async function start(options: CLIOptions = {}) {
   const port = options.port || 38291;
+  const host = options.host; // 用户指定的公网地址（域名或 IP）
 
   const app = express();
   const server = http.createServer(app);
@@ -100,6 +102,11 @@ export async function start(options: CLIOptions = {}) {
 
       const localUrl = `http://localhost:${port}`;
 
+      // 如果用户指定了 --host，优先使用（云端/公网场景）
+      const useHost = host;
+      const protocol = useHost?.startsWith('https') ? 'wss' : 'ws';
+      const httpProtocol = useHost?.startsWith('https') ? 'https' : 'http';
+
       // 构建网络地址列表行
       const networkLines = allIpv4.length > 0
         ? allIpv4.map(({ name, address }) => {
@@ -112,9 +119,21 @@ export async function start(options: CLIOptions = {}) {
           }).join('\n')
         : '  （未检测到局域网地址）';
 
-      // CDN snippet 用第一个 IP（最常用的），若无则用 localhost
-      const primaryIp = allIpv4[0]?.address ?? 'localhost';
-      const primaryWs = `ws://${primaryIp}:${port}`;
+      // 确定 SDK snippet 中使用的 server 地址
+      let primaryWs: string;
+      let panelUrl: string;
+      if (useHost) {
+        // 云端模式：用户指定了公网地址
+        const cleanHost = useHost.replace(/^https?:\/\//, '').replace(/\/$/, '');
+        const needsPort = !cleanHost.includes(':');
+        primaryWs = `${protocol}://${cleanHost}${needsPort && port !== 80 && port !== 443 ? ':' + port : ''}`;
+        panelUrl = `${httpProtocol}://${cleanHost}${needsPort && port !== 80 && port !== 443 ? ':' + port : ''}`;
+      } else {
+        // 局域网模式：自动检测 IP
+        const primaryIp = allIpv4[0]?.address ?? 'localhost';
+        primaryWs = `ws://${primaryIp}:${port}`;
+        panelUrl = localUrl;
+      }
 
       console.log(`
 ┌─────────────────────────────────────────────────────┐
@@ -122,10 +141,9 @@ export async function start(options: CLIOptions = {}) {
 ├─────────────────────────────────────────────────────┤
 │  PC 监控面板                                         │
 │    本机:   ${localUrl}
-│  局域网（所有可用网卡）：
-${networkLines.split('\n').map(l => `│    ${l}`).join('\n')}
+${useHost ? `│    公网:   ${panelUrl}` : `│  局域网（所有可用网卡）：\n${networkLines.split('\n').map(l => `│    ${l}`).join('\n')}`}
 ├─────────────────────────────────────────────────────┤
-│  SDK 接入（选择上方对应网络的 server 地址粘贴）       │
+│  SDK 接入（复制以下代码到 H5 页面）                   │
 │                                                     │
 │  <script src="https://unpkg.com/@openlog/sdk@latest  │
 │    /dist/openlog.iife.js"></script>                 │
@@ -137,8 +155,9 @@ ${networkLines.split('\n').map(l => `│    ${l}`).join('\n')}
 │    })                                               │
 │  </script>                                         │
 │                                                     │
-│  ⚠️  手机与电脑不在同一 WiFi？                        │
-│     从上方局域网列表选择手机可达的网卡地址替换 server │
+${useHost
+  ? `│  ✅ 已配置公网地址，任何网络下的设备均可连接          │`
+  : `│  ⚠️  手机与电脑不在同一 WiFi？                        │\n│     从上方局域网列表选择手机可达的网卡地址替换 server │`}
 ├─────────────────────────────────────────────────────┤
 │  MCP 配置（AI 工具接入）                             │
 │    运行: npx @openlog/cli init  自动写入 MCP 配置     │

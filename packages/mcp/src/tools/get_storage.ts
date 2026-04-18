@@ -1,7 +1,6 @@
 import { API_BASE_URL } from '../config.js';
-import { DeviceSelector, type Device } from '../lib/device-selector.js';
+import { sharedDeviceSelector as deviceSelector, type Device } from '../lib/device-selector.js';
 
-const deviceSelector = new DeviceSelector();
 
 export interface StorageSnapshot {
   deviceId: string;

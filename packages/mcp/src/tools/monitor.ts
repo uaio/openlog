@@ -1,8 +1,7 @@
 import { wsClient } from '../ws-client.js';
-import { DeviceSelector } from '../lib/device-selector.js';
+import { sharedDeviceSelector as deviceSelector } from '../lib/device-selector.js';
 import { randomUUID } from 'crypto';
 
-const deviceSelector = new DeviceSelector();
 
 // MCP 进程内全局 watcher 注册表
 const watcherRegistry = new Map<string, WatcherEntry>();
