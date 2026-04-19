@@ -45,6 +45,59 @@ packages/
 
 ## Development Workflow
 
+### Local Development (Full Stack)
+
+To run and test the complete openLog stack locally:
+
+**Terminal 1 — Start the server:**
+```bash
+pnpm build                          # Build all packages first
+node packages/cli/bin/openlog.js    # Start server (default port 9898)
+
+# Useful flags:
+#   -p 3000          Custom port
+#   --persist        Enable SQLite persistence
+#   --no-open        Don't auto-open browser
+```
+
+**Terminal 2 — Start the demo app (simulates a mobile H5 page):**
+```bash
+pnpm demo    # Starts at http://localhost:5274
+```
+
+**Terminal 3 — (Optional) Watch mode for active development:**
+```bash
+# Watch a specific package:
+pnpm --filter @openlog/server dev   # Recompile server on change
+pnpm --filter @openlog/sdk dev      # Recompile SDK on change
+pnpm --filter @openlog/web dev      # Web panel with HMR
+```
+
+### Verification Steps
+
+1. Open the PC panel at `http://localhost:9898`
+2. Open the demo page at `http://localhost:5274`
+3. The demo device should appear in the PC panel's device list
+4. Interact with the demo page — logs, network requests, and performance data stream in real-time
+5. Test MCP tools by running `npx @openlog/mcp` in a separate terminal
+
+### Package-specific Development
+
+| Package | Dev Command | Notes |
+|---------|-------------|-------|
+| `@openlog/server` | `pnpm --filter @openlog/server dev` | TypeScript watch mode |
+| `@openlog/sdk` | `pnpm --filter @openlog/sdk dev` | Vite build watch |
+| `@openlog/web` | `pnpm --filter @openlog/web dev` | Vite HMR (port 5173) |
+| `@openlog/cli` | `pnpm --filter @openlog/cli dev` | TypeScript watch mode |
+| `@openlog/mcp` | Rebuild after changes | No watch mode |
+| `docs` | `pnpm docs:dev` | VitePress dev server |
+
+### Running the Full Build
+
+```bash
+pnpm build    # Builds all 8 packages via Turborepo
+```
+
 1. **Create a branch** from `main`:
    ```bash
    git checkout -b feature/my-feature

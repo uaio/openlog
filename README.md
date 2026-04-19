@@ -535,13 +535,16 @@ const report = await logger.stopPerfRun();
 - [x] `/openlog:clean` auto-cleanup of debug logs after verification
 - [x] `start_openlog` / `stop_openlog` explicit lifecycle management
 - [x] MCP Prompt auto-loads development SOP (works on connect, no CLAUDE.md needed)
+- [x] API Key authentication (`--api-key` flag)
+- [x] SQLite persistence (`--persist` flag, configurable retention)
+- [x] i18n (English + Chinese) with auto-detection
+- [x] Multi-tab filtering
+- [x] WebSocket compression + connection status indicator
 
 ### Mid-term
 - [ ] **React Native SDK** (`platform: "react-native"`)
 - [ ] **Mini Program SDK** (WeChat/Alipay, `platform: "miniprogram"`)
 - [ ] **PC panel `custom` type display** (generic JSON tree + custom render plugins)
-- [ ] **Ingest authentication** (API Key + project-level permissions)
-- [ ] **Data persistence** (SQLite, data survives restarts)
 
 ### Long-term
 - [ ] **Flutter SDK** (`platform: "flutter"`)

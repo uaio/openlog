@@ -25,7 +25,10 @@ export default defineConfig({
           items: [
             { text: 'Console Logs', link: '/guide/console' },
             { text: 'Network Requests', link: '/guide/network' },
+            { text: 'Storage', link: '/guide/storage' },
             { text: 'Performance', link: '/guide/performance' },
+            { text: 'Mock & Throttle', link: '/guide/mock' },
+            { text: 'Health Checks', link: '/guide/health' },
             { text: 'MCP Integration', link: '/guide/mcp' },
           ],
         },
@@ -34,7 +37,8 @@ export default defineConfig({
         {
           text: 'API Reference',
           items: [
-            { text: 'SDK', link: '/api/' },
+            { text: 'Overview', link: '/api/' },
+            { text: 'SDK', link: '/api/sdk' },
             { text: 'CLI', link: '/api/cli' },
             { text: 'Server', link: '/api/server' },
           ],

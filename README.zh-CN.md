@@ -534,13 +534,16 @@ const report = await logger.stopPerfRun();
 - [x] `/openlog:clean` 验证完成后自动清除调试日志
 - [x] `start_openlog` / `stop_openlog` 显式生命周期管理
 - [x] MCP Prompt 自动加载开发 SOP（连接即生效，无需 CLAUDE.md）
+- [x] API Key 鉴权（`--api-key` 参数）
+- [x] SQLite 持久化（`--persist` 参数，可配置保留时长）
+- [x] 国际化支持（中/英文，自动检测浏览器语言）
+- [x] 多 Tab 过滤（按浏览器标签页筛选数据）
+- [x] WebSocket 压缩 + 连接状态指示器
 
 ### 中期
 - [ ] **React Native SDK**（`platform: "react-native"`）
 - [ ] **小程序 SDK**（微信/支付宝，`platform: "miniprogram"`）
 - [ ] **PC 面板 `custom` 类型展示**（通用 JSON 树 + 自定义渲染插件）
-- [ ] **ingest 鉴权**（API Key + 项目级权限）
-- [ ] **数据持久化**（SQLite，重启后数据不丢失）
 
 ### 长期
 - [ ] **Flutter SDK**（`platform: "flutter"`）

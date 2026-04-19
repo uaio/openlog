@@ -63,3 +63,40 @@ WebSocket connections must include the key as a query parameter:
 ```
 ws://localhost:9898?apiKey=<your-key>
 ```
+
+## Internationalization (i18n)
+
+openLog supports English and Chinese for both the SDK (Eruda panel) and the PC web panel.
+
+### SDK Language
+
+Set the `lang` option when initializing:
+
+```typescript
+new OpenLog({
+  projectId: 'my-app',
+  lang: 'en',   // 'zh' (default) or 'en'
+});
+```
+
+### PC Panel Language
+
+The web panel auto-detects the browser's language. Users can also switch manually via the language toggle in the panel header.
+
+Language preference is persisted to `localStorage` (`openlog_lang`).
+
+### Adding a Language
+
+Both SDK and web panel use a simple key-value locale system:
+- SDK: `packages/sdk/src/i18n/`
+- Web: `packages/web/src/i18n/` (implements the `Locale` TypeScript interface)
+
+## Multi-tab Support
+
+When a user has multiple browser tabs open on the same device, each tab gets a unique `tabId`. The PC panel can filter data by tab:
+
+- **TabFilter component** — Dropdown in the panel header showing all active tabs
+- **Per-tab filtering** — Console logs and network requests can be filtered to a specific tab
+- **Tab identification** — Each tab reports its URL, so you can identify which page it represents
+
+The `tabId` is auto-generated when the SDK initializes and included in every data envelope sent to the server.
