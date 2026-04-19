@@ -51,4 +51,4 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @openlog/types --filter @openlog/server --filter @openlog/mcp --filter @openlog/cli run build
-      - run: pnpm --filter @openlog/server --filter @openlog/mcp --filter @openlog/cli test
+      - run: pnpm --filter @openlog/server --filter @openlog/mcp --filter @openlog/cli --filter @openlog/sdk test
