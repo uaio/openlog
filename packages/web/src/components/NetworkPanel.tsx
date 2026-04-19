@@ -1,5 +1,6 @@
 import { CSSProperties, useState, useMemo } from 'react';
 import { useNetworkRequests } from '../hooks/useNetworkRequests.js';
+import { useI18n } from '../i18n/index.js';
 import type { NetworkRequest } from '../types/index.js';
 
 interface NetworkPanelProps {
@@ -43,6 +44,7 @@ function formatUrl(url: string): string {
 
 function RequestDetail({ request, onClose }: { request: NetworkRequest; onClose: () => void }) {
   const [tab, setTab] = useState<'headers' | 'request' | 'response'>('headers');
+  const { t } = useI18n();
 
   return (
     <div style={detailStyles.container}>
@@ -60,26 +62,37 @@ function RequestDetail({ request, onClose }: { request: NetworkRequest; onClose:
 
       <div style={detailStyles.meta}>
         <span>
-          状态: <b style={{ color: statusColor(request.status) }}>{request.status || 'pending'}</b>
+          {t.networkPanel.status}:{' '}
+          <b style={{ color: statusColor(request.status) }}>{request.status || 'pending'}</b>
         </span>
         <span>
-          耗时: <b>{formatDuration(request.duration)}</b>
+          {t.networkPanel.duration}: <b>{formatDuration(request.duration)}</b>
         </span>
-        <span>类型: {request.type.toUpperCase()}</span>
-        {request.error && <span style={{ color: '#ff4d4f' }}>错误: {request.error}</span>}
+        <span>
+          {t.networkPanel.type}: {request.type.toUpperCase()}
+        </span>
+        {request.error && (
+          <span style={{ color: '#ff4d4f' }}>
+            {t.common.error}: {request.error}
+          </span>
+        )}
       </div>
 
       <div style={detailStyles.tabs}>
-        {(['headers', 'request', 'response'] as const).map((t) => (
+        {(['headers', 'request', 'response'] as const).map((tabKey) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
+            key={tabKey}
+            onClick={() => setTab(tabKey)}
             style={{
               ...detailStyles.tab,
-              ...(tab === t ? detailStyles.activeTab : {}),
+              ...(tab === tabKey ? detailStyles.activeTab : {}),
             }}
           >
-            {t === 'headers' ? 'Headers' : t === 'request' ? 'Request Body' : 'Response Body'}
+            {tabKey === 'headers'
+              ? t.networkPanel.headers
+              : tabKey === 'request'
+                ? t.networkPanel.requestBody
+                : t.networkPanel.responseBody}
           </button>
         ))}
       </div>
@@ -108,7 +121,7 @@ function RequestDetail({ request, onClose }: { request: NetworkRequest; onClose:
               </div>
             )}
             {!request.requestHeaders && !request.responseHeaders && (
-              <div style={{ color: '#999', fontSize: 13 }}>无 Headers 数据</div>
+              <div style={{ color: '#999', fontSize: 13 }}>{t.common.noData}</div>
             )}
           </div>
         )}
@@ -129,6 +142,7 @@ export function NetworkPanel({ deviceId }: NetworkPanelProps) {
   const [filterMethod, setFilterMethod] = useState<string>('ALL');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchText, setSearchText] = useState('');
+  const { t } = useI18n();
 
   const filteredRequests = useMemo(() => {
     return requests.filter((req) => {
@@ -146,7 +160,7 @@ export function NetworkPanel({ deviceId }: NetworkPanelProps) {
     return (
       <div style={styles.placeholder}>
         <div style={{ fontSize: 48, opacity: 0.3 }}>🌐</div>
-        <div style={{ fontSize: 14, color: '#999' }}>从左侧选择设备查看网络请求</div>
+        <div style={{ fontSize: 14, color: '#999' }}>{t.common.selectDevice}</div>
       </div>
     );
   }
@@ -158,7 +172,7 @@ export function NetworkPanel({ deviceId }: NetworkPanelProps) {
         <input
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
-          placeholder="搜索 URL..."
+          placeholder={t.networkPanel.searchPlaceholder}
           style={styles.searchInput}
         />
         <select
@@ -166,7 +180,7 @@ export function NetworkPanel({ deviceId }: NetworkPanelProps) {
           onChange={(e) => setFilterMethod(e.target.value)}
           style={styles.select}
         >
-          <option value="ALL">所有方法</option>
+          <option value="ALL">{t.networkPanel.allMethods}</option>
           <option value="GET">GET</option>
           <option value="POST">POST</option>
           <option value="PUT">PUT</option>
@@ -178,22 +192,22 @@ export function NetworkPanel({ deviceId }: NetworkPanelProps) {
           onChange={(e) => setFilterStatus(e.target.value)}
           style={styles.select}
         >
-          <option value="all">所有状态</option>
-          <option value="success">成功 (&lt;400)</option>
-          <option value="error">失败 (≥400)</option>
+          <option value="all">{t.networkPanel.allStatus}</option>
+          <option value="success">Success (&lt;400)</option>
+          <option value="error">{t.networkPanel.errorOnly}</option>
         </select>
-        <button onClick={clearRequests} style={styles.clearBtn} title="清空">
+        <button onClick={clearRequests} style={styles.clearBtn} title={t.common.clear}>
           🗑
         </button>
-        <span style={styles.count}>{filteredRequests.length} 条</span>
+        <span style={styles.count}>{filteredRequests.length}</span>
       </div>
 
       <div style={styles.body}>
         {/* Request List */}
         <div style={styles.list}>
-          {loading && <div style={styles.loadingHint}>加载中...</div>}
+          {loading && <div style={styles.loadingHint}>{t.common.loading}</div>}
           {!loading && filteredRequests.length === 0 && (
-            <div style={styles.emptyHint}>暂无网络请求</div>
+            <div style={styles.emptyHint}>{t.common.noData}</div>
           )}
           {filteredRequests.map((req) => (
             <div

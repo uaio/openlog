@@ -1,4 +1,6 @@
+import { useMemo } from 'react';
 import { useDevices } from '../hooks/useDevices.js';
+import { useI18n } from '../i18n/index.js';
 import type { Device } from '../types/index.js';
 
 interface DeviceListProps {
@@ -9,56 +11,87 @@ interface DeviceListProps {
 
 export function DeviceList({ projectId, onSelectDevice, selectedDeviceId }: DeviceListProps) {
   const { devices, loading, selectedId, setSelectedId } = useDevices(projectId);
+  const { t } = useI18n();
 
   const handleSelect = (device: Device) => {
     setSelectedId(device.deviceId);
     onSelectDevice?.(device);
   };
 
-  // 使用外部传入的 selectedDeviceId（如果提供）
+  // Group devices by projectId
+  const grouped = useMemo(() => {
+    const map = new Map<string, Device[]>();
+    for (const device of devices) {
+      const key = device.projectId || 'default';
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(device);
+    }
+    // Sort: online first within each group
+    for (const [, list] of map) {
+      list.sort((a, b) => (b.online ? 1 : 0) - (a.online ? 1 : 0));
+    }
+    return map;
+  }, [devices]);
+
   const currentSelectedId = selectedDeviceId !== undefined ? selectedDeviceId : selectedId;
+  const hasMultipleProjects = grouped.size > 1;
 
   if (loading) {
-    return <div style={styles.loading}>加载中...</div>;
+    return <div style={styles.loading}>{t.common.loading}</div>;
   }
 
   return (
     <div style={styles.container}>
-      <div style={styles.header}>设备列表 ({devices.length})</div>
+      <div style={styles.header}>
+        {t.deviceList.title} ({devices.length})
+      </div>
 
       {devices.length === 0 ? (
-        <div style={styles.empty}>暂无设备连接</div>
+        <div style={styles.empty}>{t.deviceList.empty}</div>
       ) : (
         <div style={styles.list}>
-          {devices.map((device) => (
-            <div
-              key={device.deviceId}
-              onClick={() => handleSelect(device)}
-              style={{
-                ...styles.deviceItem,
-                ...(currentSelectedId === device.deviceId ? styles.selected : {}),
-                ...(device.online ? styles.online : styles.offline),
-              }}
-            >
-              <div style={styles.deviceInfo}>
-                <div style={styles.deviceName}>{device.ua}</div>
-                <div style={styles.deviceDetails}>
-                  {device.screen} · {device.language}
+          {[...grouped.entries()].map(([pid, groupDevices]) => (
+            <div key={pid}>
+              {hasMultipleProjects && (
+                <div style={styles.groupHeader}>
+                  <span style={styles.groupIcon}>📦</span>
+                  <span style={styles.groupName}>{pid}</span>
+                  <span style={styles.groupCount}>{groupDevices.length}</span>
                 </div>
-                <div style={styles.deviceId}>ID: {device.deviceId}</div>
-              </div>
-
-              <div style={styles.deviceMeta}>
+              )}
+              {groupDevices.map((device) => (
                 <div
+                  key={device.deviceId}
+                  onClick={() => handleSelect(device)}
                   style={{
-                    ...styles.status,
-                    ...(device.online ? styles.online : styles.offline),
+                    ...styles.deviceItem,
+                    ...(currentSelectedId === device.deviceId ? styles.selected : {}),
+                    ...(device.online ? styles.onlineBorder : styles.offlineBorder),
                   }}
                 >
-                  {device.online ? '在线' : '离线'}
+                  <div style={styles.deviceInfo}>
+                    <div style={styles.deviceName}>{device.ua}</div>
+                    <div style={styles.deviceDetails}>
+                      {device.screen} · {device.language}
+                    </div>
+                    {!hasMultipleProjects && (
+                      <div style={styles.projectBadge}>{device.projectId}</div>
+                    )}
+                  </div>
+
+                  <div style={styles.deviceMeta}>
+                    <div
+                      style={{
+                        ...styles.status,
+                        backgroundColor: device.online ? '#f6ffed' : '#fff2f0',
+                        color: device.online ? '#52c41a' : '#ff4d4f',
+                      }}
+                    >
+                      {device.online ? t.common.online : t.common.offline}
+                    </div>
+                  </div>
                 </div>
-                <div style={styles.tabs}>{device.activeTabs} 标签</div>
-              </div>
+              ))}
             </div>
           ))}
         </div>
@@ -101,14 +134,40 @@ const styles = {
     overflowY: 'auto' as const,
     padding: '8px',
   },
+  groupHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '8px 12px 4px',
+    fontSize: '12px',
+    fontWeight: 600,
+    color: '#666',
+    marginTop: '4px',
+  },
+  groupIcon: {
+    fontSize: '12px',
+  },
+  groupName: {
+    flex: 1,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap' as const,
+  },
+  groupCount: {
+    fontSize: '11px',
+    color: '#999',
+    backgroundColor: '#e8e8e8',
+    borderRadius: '8px',
+    padding: '1px 6px',
+  },
   deviceItem: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '12px',
-    marginBottom: '8px',
+    marginBottom: '6px',
     backgroundColor: '#fff',
-    borderRadius: '4px',
+    borderRadius: '6px',
     cursor: 'pointer',
     transition: 'all 0.2s',
     borderLeft: '3px solid transparent',
@@ -117,10 +176,10 @@ const styles = {
     borderLeftColor: '#1890ff',
     boxShadow: '0 2px 8px rgba(24, 144, 255, 0.15)',
   },
-  online: {
+  onlineBorder: {
     borderLeftColor: '#52c41a',
   },
-  offline: {
+  offlineBorder: {
     borderLeftColor: '#ff4d4f',
   },
   deviceInfo: {
@@ -128,24 +187,26 @@ const styles = {
     minWidth: 0,
   },
   deviceName: {
-    fontSize: '14px',
+    fontSize: '13px',
     fontWeight: 500,
-    marginBottom: '4px',
+    marginBottom: '3px',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap' as const,
   },
   deviceDetails: {
-    fontSize: '12px',
+    fontSize: '11px',
     color: '#999',
   },
-  deviceId: {
+  projectBadge: {
+    display: 'inline-block',
+    marginTop: '3px',
     fontSize: '10px',
-    color: '#1890ff',
+    color: '#8c8c8c',
+    backgroundColor: '#f0f0f0',
+    padding: '1px 6px',
+    borderRadius: '3px',
     fontFamily: 'monospace',
-    marginTop: '2px',
-    wordBreak: 'break-all' as const,
-    lineHeight: '1.2',
   },
   deviceMeta: {
     display: 'flex',
@@ -154,12 +215,9 @@ const styles = {
     gap: '4px',
   },
   status: {
-    fontSize: '12px',
-    padding: '2px 8px',
-    borderRadius: '2px',
-  },
-  tabs: {
     fontSize: '11px',
-    color: '#999',
+    padding: '2px 8px',
+    borderRadius: '10px',
+    fontWeight: 500,
   },
 };

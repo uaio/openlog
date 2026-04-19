@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useLogs } from '../hooks/useLogs.js';
+import { useI18n } from '../i18n/index.js';
 import { LogEntry } from './LogEntry.js';
 import { api } from '../api/client.js';
 import { websocketManager } from '../lib/websocketManager.js';
@@ -11,6 +12,7 @@ interface LogPanelProps {
 
 export function LogPanel({ deviceId }: LogPanelProps) {
   const { logs, clearLogs, loading } = useLogs(deviceId);
+  const { t } = useI18n();
   const containerRef = useRef<HTMLDivElement>(null);
   const prevLogsLengthRef = useRef(0);
   const [clearingHistory, setClearingHistory] = useState(false);
@@ -107,7 +109,7 @@ export function LogPanel({ deviceId }: LogPanelProps) {
   const handleClearHistory = async () => {
     if (!deviceId) return;
 
-    if (!confirm('确定要清空该设备的历史日志吗？此操作不可恢复。')) {
+    if (!confirm(t.logPanel.clearHistoryConfirm)) {
       return;
     }
 
@@ -159,10 +161,13 @@ export function LogPanel({ deviceId }: LogPanelProps) {
       <div style={styles.header}>
         <div style={styles.titleSection}>
           <div style={styles.title}>
-            控制台日志 {loading && <span style={styles.loadingText}> (加载中...)</span>}
+            {t.logPanel.title}{' '}
+            {loading && <span style={styles.loadingText}> ({t.common.loading})</span>}
           </div>
           {!loading && logs.length > 0 && (
-            <div style={styles.hint}>已加载 {logs.length} 条历史日志</div>
+            <div style={styles.hint}>
+              {t.logPanel.historicalLoaded.replace('{count}', String(logs.length))}
+            </div>
           )}
         </div>
         <div style={styles.buttonGroup}>
@@ -283,13 +288,13 @@ export function LogPanel({ deviceId }: LogPanelProps) {
                 ...(filterLevel === level ? styles.levelButtonActive : {}),
               }}
             >
-              {level === 'all' ? '全部' : level.toUpperCase()}
+              {level === 'all' ? t.logPanel.all : level.toUpperCase()}
             </button>
           ))}
         </div>
         <input
           type="text"
-          placeholder="搜索日志..."
+          placeholder={t.logPanel.search}
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           style={styles.searchInput}
@@ -300,17 +305,12 @@ export function LogPanel({ deviceId }: LogPanelProps) {
         {loading ? (
           <div style={styles.empty}>
             <div style={styles.loadingIcon}>⏳</div>
-            <div>正在加载历史日志...</div>
+            <div>{t.common.loading}</div>
           </div>
         ) : filteredLogs.length === 0 ? (
           <div style={styles.empty}>
             <div style={styles.emptyIcon}>{logs.length === 0 ? '📝' : '🔍'}</div>
-            <div style={styles.emptyText}>{logs.length === 0 ? '暂无日志' : '没有匹配的日志'}</div>
-            <div style={styles.emptyHint}>
-              {logs.length === 0
-                ? '在移动设备上执行操作后，日志将自动显示在这里'
-                : `共 ${logs.length} 条日志，尝试调整筛选条件`}
-            </div>
+            <div style={styles.emptyText}>{t.common.noData}</div>
           </div>
         ) : (
           <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>

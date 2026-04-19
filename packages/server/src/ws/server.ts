@@ -41,6 +41,11 @@ export function createWebSocketServer(
 
   const wss = new WebSocketServer({
     server: httpServer,
+    perMessageDeflate: {
+      zlibDeflateOptions: { chunkSize: 1024, memLevel: 7, level: 3 },
+      zlibInflateOptions: { chunkSize: 10 * 1024 },
+      threshold: 1024, // only compress messages > 1KB
+    },
     verifyClient: options.apiKey
       ? (
           info: { req: IncomingMessage },
