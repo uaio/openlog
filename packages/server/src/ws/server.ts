@@ -11,6 +11,7 @@ import {
   ScreenshotStore,
   PerfRunStore,
   MockStore,
+  Persistence,
 } from '../store/index.js';
 import {
   handlers,
@@ -22,20 +23,22 @@ import {
 
 export interface WebSocketServerOptions {
   apiKey?: string;
+  persistence?: Persistence;
 }
 
 export function createWebSocketServer(
   httpServer: HTTPServer,
   options: WebSocketServerOptions = {},
 ) {
-  const deviceStore = new DeviceStore();
-  const logStore = new LogStore();
-  const networkStore = new NetworkStore();
+  const db = options.persistence;
+  const deviceStore = new DeviceStore(db);
+  const logStore = new LogStore(db);
+  const networkStore = new NetworkStore(500, db);
   const storageStore = new StorageStore();
   const domStore = new DOMStore();
   const performanceStore = new PerformanceStore();
   const screenshotStore = new ScreenshotStore();
-  const perfRunStore = new PerfRunStore();
+  const perfRunStore = new PerfRunStore(db);
   const mockStore = new MockStore();
   const deviceIds = new Map<WebSocket, string>();
 

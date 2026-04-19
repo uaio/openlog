@@ -1,3 +1,5 @@
+import type { Persistence } from './persistence.js';
+
 export interface ConsoleLog {
   deviceId: string;
   tabId: string;
@@ -11,6 +13,11 @@ export class LogStore {
   private logs: Map<string, ConsoleLog[]> = new Map();
   private cleanupTimers: Map<string, NodeJS.Timeout> = new Map();
   private readonly maxLogsPerDevice = 1000;
+  private db?: Persistence;
+
+  constructor(db?: Persistence) {
+    this.db = db;
+  }
 
   push(deviceId: string, log: ConsoleLog): void {
     let logs = this.logs.get(deviceId);
@@ -21,14 +28,23 @@ export class LogStore {
 
     logs.push(log);
 
-    // 超出限制，删除最旧的
     if (logs.length > this.maxLogsPerDevice) {
       logs.shift();
     }
+
+    this.db?.insertLog(log);
   }
 
   get(deviceId: string, limit?: number, level?: ConsoleLog['level']): ConsoleLog[] {
     let logs = this.logs.get(deviceId) || [];
+
+    // If memory is empty but we have persistence, try loading from db
+    if (logs.length === 0 && this.db) {
+      logs = this.db.loadLogs(deviceId, limit || this.maxLogsPerDevice) as ConsoleLog[];
+      if (logs.length > 0) {
+        this.logs.set(deviceId, logs);
+      }
+    }
 
     if (level) {
       logs = logs.filter((l) => l.level === level);
@@ -44,13 +60,12 @@ export class LogStore {
   clear(deviceId: string): void {
     this.logs.delete(deviceId);
     this.cancelCleanup(deviceId);
+    this.db?.clearLogs(deviceId);
   }
 
   cleanup(deviceId: string): void {
-    // 取消之前的清理计时器（如果存在）
     this.cancelCleanup(deviceId);
 
-    // 当设备断开 30 分钟后清理
     const timer = setTimeout(
       () => {
         this.logs.delete(deviceId);

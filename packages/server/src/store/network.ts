@@ -1,3 +1,5 @@
+import type { Persistence } from './persistence.js';
+
 /** 网络请求记录 */
 export interface NetworkRequest {
   deviceId: string;
@@ -28,9 +30,11 @@ export class NetworkStore {
   private requests: Map<string, NetworkRequest[]> = new Map();
   private readonly maxRequestsPerDevice: number;
   private cleanupTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
+  private db?: Persistence;
 
-  constructor(maxRequestsPerDevice = 500) {
+  constructor(maxRequestsPerDevice = 500, db?: Persistence) {
     this.maxRequestsPerDevice = maxRequestsPerDevice;
+    this.db = db;
   }
 
   push(deviceId: string, request: NetworkRequest): void {
@@ -40,30 +44,36 @@ export class NetworkStore {
 
     const deviceRequests = this.requests.get(deviceId)!;
 
-    // 取消之前的清理计时器
     const existingTimer = this.cleanupTimers.get(deviceId);
     if (existingTimer) {
       clearTimeout(existingTimer);
       this.cleanupTimers.delete(deviceId);
     }
 
-    // 添加新请求
     deviceRequests.push(request);
 
-    // 限制数量（FIFO）
     if (deviceRequests.length > this.maxRequestsPerDevice) {
       deviceRequests.splice(0, deviceRequests.length - this.maxRequestsPerDevice);
     }
+
+    this.db?.insertNetworkRequest(request);
   }
 
   get(deviceId: string, options?: NetworkQueryOptions): NetworkRequest[] {
     let requests = this.requests.get(deviceId);
 
+    // If memory is empty but we have persistence, try loading from db
+    if ((!requests || requests.length === 0) && this.db) {
+      requests = this.db.loadNetworkRequests(deviceId, options?.limit || this.maxRequestsPerDevice) as NetworkRequest[];
+      if (requests.length > 0) {
+        this.requests.set(deviceId, requests);
+      }
+    }
+
     if (!requests) {
       return [];
     }
 
-    // 应用过滤
     if (options) {
       requests = requests.filter((req) => {
         if (options.method && req.method.toUpperCase() !== options.method.toUpperCase()) {
@@ -79,14 +89,13 @@ export class NetworkStore {
               return false;
             }
           } catch {
-            // 忽略无效的正则表达式
+            // ignore invalid regex
           }
         }
         return true;
       });
     }
 
-    // 应用限制
     if (options?.limit && options.limit > 0) {
       requests = requests.slice(-options.limit);
     }
@@ -97,7 +106,6 @@ export class NetworkStore {
   clear(deviceId: string): void {
     this.requests.delete(deviceId);
 
-    // 取消清理计时器
     const timer = this.cleanupTimers.get(deviceId);
     if (timer) {
       clearTimeout(timer);
@@ -105,9 +113,7 @@ export class NetworkStore {
     }
   }
 
-  /** 设备断开后延迟清理 */
   cleanup(deviceId: string): void {
-    // 30 分钟后清理
     const timer = setTimeout(
       () => {
         this.requests.delete(deviceId);
@@ -119,7 +125,6 @@ export class NetworkStore {
     this.cleanupTimers.set(deviceId, timer);
   }
 
-  /** 取消清理计时器（设备重新连接时调用） */
   cancelCleanup(deviceId: string): void {
     const timer = this.cleanupTimers.get(deviceId);
     if (timer) {
@@ -128,7 +133,6 @@ export class NetworkStore {
     }
   }
 
-  /** 获取所有设备的请求总数 */
   getTotalCount(): number {
     let total = 0;
     for (const requests of this.requests.values()) {

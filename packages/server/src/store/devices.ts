@@ -1,3 +1,5 @@
+import type { Persistence } from './persistence.js';
+
 export interface Device {
   deviceId: string;
   projectId: string;
@@ -14,9 +16,29 @@ export interface Device {
 export class DeviceStore {
   private devices: Map<string, Device> = new Map();
   private cleanupTimer?: NodeJS.Timeout;
+  private db?: Persistence;
 
-  constructor() {
-    // 每 1 分钟清理一次离线设备（更快响应）
+  constructor(db?: Persistence) {
+    this.db = db;
+
+    // Load persisted devices on startup
+    if (db) {
+      for (const d of db.loadDevices()) {
+        this.devices.set(d.deviceId, {
+          deviceId: d.deviceId,
+          projectId: d.projectId,
+          ua: d.ua,
+          screen: d.screen,
+          pixelRatio: d.pixelRatio,
+          language: d.language,
+          connectTime: d.firstSeen,
+          lastActiveTime: d.lastSeen,
+          activeTabs: 0,
+          online: false,
+        });
+      }
+    }
+
     this.cleanupTimer = setInterval(
       () => {
         this.cleanup();
@@ -33,6 +55,14 @@ export class DeviceStore {
       online: true,
       activeTabs: existing ? existing.activeTabs + 1 : 1,
     });
+    this.db?.upsertDevice({
+      deviceId,
+      projectId: info.projectId,
+      ua: info.ua,
+      screen: info.screen,
+      pixelRatio: info.pixelRatio,
+      language: info.language,
+    });
   }
 
   unregister(deviceId: string): void {
@@ -43,6 +73,7 @@ export class DeviceStore {
         device.online = false;
         device.lastActiveTime = Date.now();
       }
+      this.db?.touchDevice(deviceId);
     }
   }
 
@@ -66,24 +97,12 @@ export class DeviceStore {
     }
   }
 
-  // 清理 10 分钟未活跃的设备
   cleanup(): void {
     const threshold = Date.now() - 10 * 60 * 1000;
-    const deletedIds: string[] = [];
-
     for (const [id, device] of this.devices.entries()) {
       if (!device.online && device.lastActiveTime < threshold) {
-        deletedIds.push(id);
         this.devices.delete(id);
       }
-    }
-
-    // 记录删除的设备
-    if (deletedIds.length > 0) {
-      console.log(
-        `[DeviceStore] 清理了 ${deletedIds.length} 个离线设备 (10分钟未活跃):`,
-        deletedIds,
-      );
     }
   }
 

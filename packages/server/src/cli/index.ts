@@ -1,5 +1,6 @@
 import { createWebSocketServer } from '../ws/server.js';
 import { createRoutes } from '../api/routes.js';
+import { Persistence } from '../store/persistence.js';
 import express from 'express';
 import http from 'http';
 import cors from 'cors';
@@ -13,6 +14,9 @@ export interface CLIOptions {
   webDistPath?: string;
   corsOrigin?: string;
   apiKey?: string;
+  persist?: boolean;
+  dbPath?: string;
+  retentionDays?: number;
 }
 
 export async function start(options: CLIOptions = {}) {
@@ -39,6 +43,15 @@ export async function start(options: CLIOptions = {}) {
     });
   }
 
+  // Optional persistence layer
+  let persistence: Persistence | undefined;
+  if (options.persist) {
+    persistence = new Persistence({
+      dbPath: options.dbPath,
+      retentionDays: options.retentionDays,
+    });
+  }
+
   const {
     deviceStore,
     logStore,
@@ -49,7 +62,7 @@ export async function start(options: CLIOptions = {}) {
     screenshotStore,
     perfRunStore,
     mockStore,
-  } = createWebSocketServer(server, { apiKey });
+  } = createWebSocketServer(server, { apiKey, persistence });
   app.use(express.json({ limit: '5mb' })); // screenshots can be large, but cap at 5MB
   app.use(
     createRoutes(
@@ -95,6 +108,9 @@ export async function start(options: CLIOptions = {}) {
     console.log(`\n收到 ${signal} 信号，正在关闭服务器...`);
 
     try {
+      // 关闭持久化层
+      persistence?.close();
+
       // 关闭 HTTP 服务器
       await new Promise<void>((resolve, reject) => {
         server.close((err) => {
