@@ -3,11 +3,11 @@
   "version": "3.4.3",
   "description": "Console for Mobile Browsers",
   "main": "dist/eruda.js",
-  "types": "dist/eruda.d.ts",
+  "types": "eruda.d.ts",
   "exports": {
     ".": {
       "import": "./dist/eruda.js",
-      "types": "./dist/eruda.d.ts"
+      "types": "./eruda.d.ts"
     }
   },
   "browserslist": [
