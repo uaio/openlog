@@ -20,6 +20,7 @@ openLog has three usage modes — pick what fits, they're independent:
 | **SDK + Claude Code** | AI-assisted development, auto-verification | Then run `npx @openlog/cli init` for MCP config |
 
 > 📖 **[Complete Debug Flow Guide](./docs/debug-flow-guide.md)** — Step-by-step setup and usage for each mode.
+> 🤖 **[AI Development Skill (SOP)](./docs/ai-dev-skill.md)** — Node verification SOP for CLAUDE.md / Cursor Rules.
 
 **openLog is also an open data platform**: any system (CI/CD, backend, Native apps, third-party tools) can push data via standard APIs for PC panel display and AI tool querying.
 

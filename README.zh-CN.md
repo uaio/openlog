@@ -19,7 +19,8 @@ openLog 有三种用法，按需选择，互相独立：
 | **SDK + PC 面板** | 远程监控，团队协作 | `npx @openlog/cli` 启动服务 |
 | **SDK + Claude Code** | AI 辅助开发，自动验证 | 再执行 `npx @openlog/cli init` 配置 MCP |
 
-> 📖 **[完整调试流程指南（小白版）](./docs/debug-flow-guide.md)** — 从零开始，每种模式的详细安装和使用步骤。
+> 📖 **[完整调试流程指南（小白版）](./docs/debug-flow-guide.zh-CN.md)** — 从零开始，每种模式的详细安装和使用步骤。
+> 🤖 **[AI 开发 Skill（SOP）](./docs/ai-dev-skill.zh-CN.md)** — 节点验证 SOP，粘贴到 CLAUDE.md / Cursor Rules 即可。
 
 **同时，openLog 是一个开放数据平台**：任何系统（CI/CD、服务端、Native App、第三方工具）均可通过标准接口推送数据，供 PC 面板展示和 AI 工具查询。
 

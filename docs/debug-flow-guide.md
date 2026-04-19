@@ -1,332 +1,332 @@
-# openLog 完整调试流程指南（小白版）
+# openLog Complete Debug Flow Guide (Beginner-Friendly)
 
-> openLog 有三种使用方式，由简到繁。你可以只用其中一种，也可以组合使用。
+> openLog offers three usage modes, from simplest to most advanced. You can use just one, or combine them.
 
 ---
 
-## 总览：三种模式对比
+## Overview: Three Modes Compared
 
 ```
 ┌───────────────┬──────────────────────┬────────────────────┬───────────────────────────────┐
-│               │  模式 A: 仅 SDK      │  模式 B: SDK + PC  │  模式 C: SDK + Claude Code    │
+│               │  Mode A: SDK Only    │  Mode B: SDK + PC  │  Mode C: SDK + Claude Code    │
 ├───────────────┼──────────────────────┼────────────────────┼───────────────────────────────┤
-│  需要安装     │  一行 <script>       │  npx @openlog/cli       │  npx @openlog/cli init             │
-│  调试面板     │  手机上 Eruda 浮球    │  电脑浏览器 PC 面板 │  Claude Code 直接读取数据      │
-│  网络要求     │  无                  │  手机电脑同局域网   │  同左                         │
-│  适合场景     │  快速看日志/报错      │  远程监控/团队协作   │  AI 自动验证/排错             │
-│  数据去向     │  手机本地 Eruda      │  → PC 实时展示      │  → Claude Code 通过 MCP 查询  │
+│  Setup needed │  One <script> tag    │  npx @openlog/cli  │  npx @openlog/cli init        │
+│  Debug panel  │  Eruda on phone      │  PC browser panel  │  Claude Code reads data       │
+│  Network req  │  None                │  Same LAN          │  Same LAN                     │
+│  Best for     │  Quick log checking  │  Remote monitoring  │  AI auto-verification         │
+│  Data goes to │  Local Eruda         │  → PC real-time     │  → Claude Code via MCP        │
 └───────────────┴──────────────────────┴────────────────────┴───────────────────────────────┘
 ```
 
 ---
 
-## 模式 A：仅 SDK（最简单，10 秒上手）
+## Mode A: SDK Only (Simplest — 10 Seconds to Start)
 
-### 你会得到什么
+### What You Get
 
-手机页面左下角出现一个调试浮球，点开后看到完整的控制台、网络请求、存储、DOM 树 —— 跟 Chrome DevTools 类似。
+A debug floating button appears at the bottom-left of the phone page. Tap it to see a full console, network requests, storage, DOM tree — similar to Chrome DevTools.
 
-### 安装步骤
+### Setup Steps
 
-在你的 H5 页面 `<head>` 或 `<body>` 末尾加一行：
+Add this to your H5 page's `<head>` or at the end of `<body>`:
 
 ```html
 <script src="https://unpkg.com/@openlog/sdk@latest/dist/openlog.iife.js"></script>
 <script>
-  OpenLog.init({ projectId: 'my-app', lang: 'zh' })
+  OpenLog.init({ projectId: 'my-app', lang: 'en' })
 </script>
 ```
 
-**没有 `server` 参数 → SDK 不会连接远端，只启动本地 Eruda 面板。**
+**No `server` parameter → SDK won't connect remotely, only starts the local Eruda panel.**
 
-### 使用流程
+### Usage Flow
 
 ```
-1. 把上面代码加到你的 H5 页面
-2. 手机打开页面
-3. 看到左下角绿色浮球 → 点击展开
-4. 查看 Console / Network / Elements / Storage 等 Tab
-5. 调试完毕 → 删掉那两行 <script>
+1. Add the code above to your H5 page
+2. Open the page on your phone
+3. See the green floating button at bottom-left → tap to expand
+4. Check Console / Network / Elements / Storage tabs
+5. Done debugging → remove those two <script> tags
 ```
 
-### 适合什么场景
+### Best For
 
-- 手机上白屏了，想看报错信息
-- 想确认某个接口有没有调通
-- 不方便连 WiFi，纯本地快速排查
+- Phone shows white screen, want to see error messages
+- Want to confirm if an API call went through
+- No WiFi available, quick local debugging
 
 ---
 
-## 模式 B：SDK + PC 监控面板（远程调试）
+## Mode B: SDK + PC Monitoring Panel (Remote Debugging)
 
-### 你会得到什么
+### What You Get
 
-手机上的所有日志、网络请求、存储、性能数据 **实时同步到电脑浏览器**。支持多设备同时接入。
+All logs, network requests, storage, and performance data from the phone **sync to your PC browser in real-time**. Supports multiple devices simultaneously.
 
-### 安装步骤
+### Setup Steps
 
-#### 第一步：电脑上启动服务（零安装）
+#### Step 1: Start the Server on Your PC (Zero Install)
 
 ```bash
 npx @openlog/cli
 ```
 
-启动后终端会打印：
+After startup, the terminal prints:
 
 ```
 ┌─────────────────────────────────────────┐
-│         openLog  已启动 🚀               │
+│         openLog  Started 🚀              │
 ├─────────────────────────────────────────┤
-│  PC 监控面板                             │
-│    本机:   http://localhost:38291        │
-│  局域网：                                │
+│  PC Monitoring Panel                     │
+│    Local:   http://localhost:38291       │
+│  LAN:                                    │
 │    en0          http://192.168.1.5:38291 │
 │                 SDK server: 'ws://192.168.1.5:38291' │
 ├─────────────────────────────────────────┤
-│  SDK 接入：                              │
+│  SDK Integration:                        │
 │  <script src="https://unpkg.com/@openlog/sdk@latest/dist/openlog.iife.js"></script>
 │  <script>                                │
 │    OpenLog.init({                        │
 │      projectId: 'my-app',               │
 │      server: 'ws://192.168.1.5:38291',  │
-│      lang: 'zh'                          │
+│      lang: 'en'                          │
 │    })                                    │
 │  </script>                               │
 └─────────────────────────────────────────┘
 ```
 
-**直接复制终端里打印的代码就行。** IP 地址已经帮你填好了。
+**Just copy the code printed in the terminal.** The IP address is already filled in for you.
 
-#### 第二步：H5 页面接入 SDK
+#### Step 2: Integrate the SDK in Your H5 Page
 
-把终端打印的代码粘贴到你的 H5 页面：
+Paste the code from the terminal into your H5 page:
 
 ```html
 <script src="https://unpkg.com/@openlog/sdk@latest/dist/openlog.iife.js"></script>
 <script>
   OpenLog.init({
     projectId: 'my-app',
-    server: 'ws://192.168.1.5:38291',   // ← 换成你终端显示的地址
-    lang: 'zh'
+    server: 'ws://192.168.1.5:38291',   // ← Replace with the address shown in your terminal
+    lang: 'en'
   })
 </script>
 ```
 
-**有了 `server` 参数 → SDK 会通过 WebSocket 把数据发到你电脑上。**
+**With the `server` parameter → SDK sends data to your PC via WebSocket.**
 
-> 也可以用 npm 方式：
+> You can also use npm:
 > ```bash
 > npm install @openlog/sdk
 > ```
 > ```javascript
 > import OpenLog from '@openlog/sdk'
-> new OpenLog({ projectId: 'my-app', server: 'ws://192.168.1.5:38291', lang: 'zh' })
+> new OpenLog({ projectId: 'my-app', server: 'ws://192.168.1.5:38291', lang: 'en' })
 > ```
 
-#### 第三步：电脑打开 PC 面板
+#### Step 3: Open the PC Panel
 
-浏览器访问 `http://localhost:38291`（或终端显示的地址）。
+Visit `http://localhost:38291` (or the address shown in terminal) in your browser.
 
-### 使用流程
+### Usage Flow
 
 ```
-1. 电脑：npx @openlog/cli                    → 服务启动
-2. H5 页面：粘贴 SDK 代码                → SDK 连接服务
-3. 手机：打开 H5 页面                    → 设备出现在 PC 面板左侧
-4. 电脑：选中设备                        → 看到实时日志/网络/存储/性能
-5. 在手机上操作                          → PC 面板实时刷新
-6. 电脑可以：远程执行 JS / 截图 / Mock 接口 / 模拟弱网
-7. 调试完毕：Ctrl+C 停止服务 + 删除 SDK 代码
+1. PC: npx @openlog/cli                → Server starts
+2. H5 page: paste SDK code             → SDK connects to server
+3. Phone: open H5 page                 → Device appears in PC panel sidebar
+4. PC: select device                   → See real-time logs/network/storage/performance
+5. Interact on phone                   → PC panel refreshes in real-time
+6. PC can: remote execute JS / screenshot / mock APIs / simulate slow network
+7. Done debugging: Ctrl+C to stop server + remove SDK code
 ```
 
-### PC 面板有什么
+### What's in the PC Panel
 
-| Tab | 功能 |
-|-----|------|
-| 📝 控制台 | 实时日志 + 远程执行 JS + 日志导出 |
-| 🌐 网络 | 请求瀑布流，看请求体/响应体/耗时 |
-| 💾 存储 | localStorage / sessionStorage / Cookie 查看和修改 |
-| 🌲 Element | DOM 树结构 |
-| 📊 Performance | FPS 曲线 + Web Vitals + 长任务 + 资源加载 |
-| 🏁 跑分 | 性能评分（A/B/C 等级 + 问题建议 + 历史对比） |
-| 🎭 Mock | API Mock 规则管理 |
-| 🩺 健康 | 页面健康检查（错误数/内存/Vitals 综合评分） |
-| 🤖 AI 分析 | 汇总数据，生成问题清单和优化建议 |
+| Tab | Function |
+|-----|----------|
+| 📝 Console | Real-time logs + Remote JS execution + Log export |
+| 🌐 Network | Request waterfall with request/response bodies and timing |
+| 💾 Storage | View and edit localStorage / sessionStorage / Cookies |
+| 🌲 Element | DOM tree structure |
+| 📊 Performance | FPS chart + Web Vitals + Long Tasks + Resource loading |
+| 🏁 Benchmark | Performance scoring (A/B/C grade + recommendations + history) |
+| 🎭 Mock | API Mock rule management |
+| 🩺 Health | Page health check (errors/memory/Vitals composite score) |
+| 🤖 AI Analysis | Aggregate data, generate issue list and optimization suggestions |
 
-### 常见问题
+### FAQ
 
-**Q: 手机和电脑不在同一 WiFi 怎么办？**
-A: 确保它们在同一局域网。终端打印了所有网卡地址，选手机能访问到的那个。
+**Q: Phone and PC not on the same WiFi?**
+A: Make sure they're on the same LAN. The terminal prints all network interface addresses — pick the one your phone can reach.
 
-**Q: 换端口？**
+**Q: Change port?**
 A: `npx @openlog/cli -p 8080`
 
 ---
 
-## 模式 C：SDK + Claude Code（AI 辅助调试）
+## Mode C: SDK + Claude Code (AI-Assisted Debugging)
 
-### 你会得到什么
+### What You Get
 
-Claude Code 通过 MCP 直接读取手机上的日志、网络请求、截图，帮你自动排错。**不需要手动打开 PC 面板** —— Claude 就是你的调试面板。你写代码时 AI 会在真机上验证每个功能节点。
+Claude Code reads your phone's logs, network requests, and screenshots directly via MCP, helping you debug automatically. **No need to open the PC panel** — Claude IS your debug panel. While you write code, AI verifies every feature on the real device.
 
-### 安装步骤
+### Setup Steps
 
-#### 第一步：配置 MCP（一次性，以后不用再做）
+#### Step 1: Configure MCP (One-time setup)
 
 ```bash
 npx @openlog/cli init
 ```
 
-这条命令会：
-- **自动检测** 你装了哪些 AI 工具（Claude Code / Cursor / Windsurf）
-- **自动写入** MCP 配置文件
-- 如果是 Claude Code，还会安装 7 个 **slash commands**
+This command will:
+- **Auto-detect** which AI tools you have installed (Claude Code / Cursor / Windsurf)
+- **Auto-write** the MCP configuration file
+- For Claude Code, also installs 7 **slash commands**
 
-> 也可以指定：`npx @openlog/cli init --for=claude`
+> You can also specify: `npx @openlog/cli init --for=claude`
 
-**然后重启 Claude Code。**
+**Then restart Claude Code.**
 
-#### 第二步：在 Claude Code 里开始
+#### Step 2: Start in Claude Code
 
-直接输入：
+Simply type:
 
 ```
 /openlog:setup
 ```
 
-这条命令会自动完成所有事情：
-1. 启动 openLog 监控服务
-2. 检测你的项目是否已接入 SDK
-3. 如果没有 → 自动注入（HTML 项目直接注入 CDN；npm 项目帮你 install + 插入代码）
-4. 等待设备连接
-5. 报告就绪状态
+This command automatically handles everything:
+1. Starts the openLog monitoring server
+2. Detects if your project has the SDK integrated
+3. If not → auto-injects (HTML projects get CDN injection; npm projects get install + code insertion)
+4. Waits for device connection
+5. Reports ready status
 
-**你只需要在手机上打开 H5 页面，剩下的 Claude 全搞定。**
+**You just need to open the H5 page on your phone — Claude handles the rest.**
 
-### 所有 slash commands
+### All Slash Commands
 
-| 命令 | 干什么 |
-|------|--------|
-| `/openlog:setup` | **一键从零到就绪**（检测→注入→启动→确认连接） |
-| `/openlog:start` | 启动监控服务 |
-| `/openlog:stop` | 停止监控服务 |
-| `/openlog:status` | 查看设备连接状态 |
-| `/openlog:logs` | 查看日志 + checkpoint 验证链路 |
-| `/openlog:screenshot` | 截取手机当前页面 |
-| `/openlog:clean` | 清除代码中所有 @openlog 调试日志 |
+| Command | What It Does |
+|---------|-------------|
+| `/openlog:setup` | **One-click zero-to-ready** (detect → inject → start → confirm connection) |
+| `/openlog:start` | Start monitoring server |
+| `/openlog:stop` | Stop monitoring server |
+| `/openlog:status` | Check device connection status |
+| `/openlog:logs` | View logs + checkpoint verification chain |
+| `/openlog:screenshot` | Capture current phone screen |
+| `/openlog:clean` | Remove all @openlog debug logs from code |
 
-### AI 开发调试流程
+### AI Development & Debug Flow
 
 ```
-你                        Claude Code                   手机
+You                       Claude Code                   Phone
 │                              │                          │
 │  /openlog:setup              │                          │
-│ ───────────────────────────► │ ensure_sdk → 注入 SDK    │
-│                              │ start_openlog → 启动服务  │
-│                              │────── WS 连接 ──────────►│
+│ ───────────────────────────► │ ensure_sdk → inject SDK  │
+│                              │ start_openlog → start    │
+│                              │────── WS connection ────►│
 │                              │                          │
-│  "帮我写登录功能"             │                          │
-│ ───────────────────────────► │ 写代码                   │
-│                              │ + 埋入 @openlog 验证日志  │
+│  "Build me a login feature"  │                          │
+│ ───────────────────────────► │ writes code              │
+│                              │ + inserts @openlog logs  │
 │ ◄─────────────────────────── │                          │
 │                              │                          │
-│  (手机上走登录流程)            │                     SDK 上报
+│  (walk through login on phone)│                    SDK reports
 │                              │ ◄────────────────────────│
 │                              │                          │
-│  "验证一下"                   │                          │
+│  "verify it"                 │                          │
 │ ───────────────────────────► │ get_checkpoints("login") │
-│ ◄─────────────────────────── │ ✅ 5 个节点全部命中       │
+│ ◄─────────────────────────── │ ✅ all 5 nodes hit       │
 │                              │                          │
-│  "有个报错帮我看看"           │                          │
+│  "there's an error, check it"│                          │
 │ ───────────────────────────► │ get_console_logs("error") │
 │                              │ + get_network_requests()  │
-│ ◄─────────────────────────── │ 定位到 API 返回 401       │
+│ ◄─────────────────────────── │ found API returning 401   │
 │                              │                          │
 │  /openlog:clean              │                          │
-│ ───────────────────────────► │ 删除所有 @openlog 日志    │
+│ ───────────────────────────► │ removes all @openlog logs │
 ```
 
-### Claude 可以调用的核心工具
+### Core Tools Claude Can Call
 
-**查数据：**
-- `get_console_logs` — 查日志（可按 level 过滤：error/warn/log）
-- `get_network_requests` — 查网络请求（URL/状态码/耗时/请求体/响应体）
-- `get_storage` — 查 localStorage / sessionStorage / Cookie
-- `get_checkpoints` — 查 @openlog[checkpoint] 验证节点
-- `take_screenshot` — 截图
-- `health_check` — 页面健康评分
+**Query data:**
+- `get_console_logs` — View logs (filter by level: error/warn/log)
+- `get_network_requests` — View network requests (URL/status/timing/body)
+- `get_storage` — View localStorage / sessionStorage / Cookies
+- `get_checkpoints` — View @openlog[checkpoint] verification nodes
+- `take_screenshot` — Capture screenshot
+- `health_check` — Page health score
 
-**控设备：**
-- `execute_js` — 远程执行 JS（在手机上跑代码）
-- `reload_page` — 刷新页面
-- `set_storage` / `clear_storage` — 修改存储
-- `network_throttle` — 模拟弱网
-- `add_mock` / `remove_mock` — Mock 接口返回
+**Control device:**
+- `execute_js` — Remote execute JS (run code on the phone)
+- `reload_page` — Refresh page
+- `set_storage` / `clear_storage` — Modify storage
+- `network_throttle` — Simulate slow network
+- `add_mock` / `remove_mock` — Mock API responses
 
-**自动检测：**
-- `ensure_sdk` — 检测项目是否已接入 SDK，没有则自动注入
+**Auto-detect:**
+- `ensure_sdk` — Detect if project has SDK integrated, auto-inject if not
 
-### 典型排错场景
+### Typical Debugging Scenarios
 
-**场景 1：页面白屏**
+**Scenario 1: White Screen**
 ```
-你: "手机打开页面白屏了"
-Claude: 调 get_console_logs(level: "error")
-       → 发现 "Cannot read property 'map' of undefined"
-       → 调 get_network_requests()
-       → 发现 /api/list 返回 500
-       → 定位到服务端问题，建议修复
-```
-
-**场景 2：逻辑验证**
-```
-你: "帮我写一个登录功能"
-Claude: 写代码 + 在关键节点埋入 @openlog[checkpoint] 日志
-你: 在手机上走一遍登录流程
-Claude: 调 get_checkpoints(feature: "login")
-       → 发现 "token 已保存" 节点存在但 hasToken: false
-       → 定位到 localStorage.setItem 写入了空值
-       → 修复代码 → 重新验证 → 通过 → 清除 @openlog 日志
+You: "Phone shows white screen"
+Claude: calls get_console_logs(level: "error")
+       → finds "Cannot read property 'map' of undefined"
+       → calls get_network_requests()
+       → finds /api/list returned 500
+       → identifies server-side issue, suggests fix
 ```
 
-**场景 3：性能问题**
+**Scenario 2: Logic Verification**
 ```
-你: "页面打开太慢"
-Claude: 调 health_check() → 健康分 45/100
-       → 调 get_perf_report() → LCP 4.2s, 3 个长任务 > 200ms
-       → 截图 take_screenshot() 确认首屏内容
-       → 给出优化建议：图片懒加载 + 拆分大组件 + API 预加载
+You: "Build me a login feature"
+Claude: writes code + inserts @openlog[checkpoint] logs at key nodes
+You: walk through login flow on phone
+Claude: calls get_checkpoints(feature: "login")
+       → finds "token saved" node exists but hasToken: false
+       → identifies localStorage.setItem wrote empty value
+       → fixes code → re-verifies → passes → cleans up @openlog logs
+```
+
+**Scenario 3: Performance Issues**
+```
+You: "Page loads too slowly"
+Claude: calls health_check() → health score 45/100
+       → calls get_perf_report() → LCP 4.2s, 3 long tasks > 200ms
+       → calls take_screenshot() to confirm first-screen content
+       → suggests: lazy-load images + split large components + preload APIs
 ```
 
 ---
 
-## 完整对比：什么时候用哪个
+## Full Comparison: When to Use Which Mode
 
-| 场景 | 推荐模式 | 理由 |
-|------|----------|------|
-| 手机上快速看一下报错 | A（仅 SDK） | 不需要电脑，加一行代码就行 |
-| 联调接口，看请求详情 | B（SDK + PC） | PC 上看请求体/响应体更方便 |
-| 多人协作，QA 反馈问题 | B（SDK + PC） | 多台手机同时接入，PC 面板统一查看 |
-| AI 帮我写代码并验证 | C（SDK + Claude Code） | Claude 自动在真机上验证每个节点 |
-| 追踪复杂逻辑 bug | C（SDK + Claude Code） | AI 自动关联日志/网络/存储综合分析 |
-| 性能优化 | B 或 C | 跑分 + Vitals + 长任务分析 |
+| Scenario | Recommended Mode | Reason |
+|----------|-----------------|--------|
+| Quick error check on phone | A (SDK Only) | No PC needed, just add one line of code |
+| API integration, inspect request details | B (SDK + PC) | Easier to view request/response bodies on PC |
+| Team collaboration, QA feedback | B (SDK + PC) | Multiple phones connect simultaneously |
+| AI writes and verifies code | C (SDK + Claude Code) | Claude auto-verifies every node on real device |
+| Track complex logic bugs | C (SDK + Claude Code) | AI correlates logs/network/storage for analysis |
+| Performance optimization | B or C | Benchmarking + Vitals + Long Task analysis |
 
 ---
 
-## 注意事项
+## Important Notes
 
-1. **openLog 是开发工具，不要带到生产环境**
-   - CDN `<script>` 标签：调试完删掉
-   - npm 安装：生产打包时排除，或用环境变量 guard
-   - `@openlog[checkpoint]` 日志：用 `/openlog:clean` 自动清除
+1. **openLog is a development tool — don't ship to production**
+   - CDN `<script>` tag: remove after debugging
+   - npm install: exclude from production builds, or guard with env variables
+   - `@openlog[checkpoint]` logs: use `/openlog:clean` to auto-remove
 
-2. **手机和电脑必须在同一局域网**（模式 B/C）
-   - 连同一个 WiFi 最简单
-   - 不在同一 WiFi？看终端打印的多个网卡地址，选手机能访问到的
+2. **Phone and PC must be on the same LAN** (Modes B/C)
+   - Connecting to the same WiFi is simplest
+   - Not on the same WiFi? Check the multiple network interface addresses printed in terminal
 
-3. **模式 B 和模式 C 可以同时用**
-   - 如果你在用 Claude Code（模式 C）的同时也想看 PC 面板，打开 `http://localhost:38291` 即可
-   - 服务是同一个，两边看到的数据一样
+3. **Modes B and C can be used simultaneously**
+   - Using Claude Code (Mode C) but also want the PC panel? Open `http://localhost:38291`
+   - Same server, same data on both sides
 
-4. **端口默认 38291**
-   - 被占用？`npx @openlog/cli -p 8080` 换一个
+4. **Default port is 38291**
+   - Port taken? `npx @openlog/cli -p 8080` to use a different one

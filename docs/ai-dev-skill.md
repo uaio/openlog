@@ -1,49 +1,49 @@
-# openLog AI 开发 Skill — 节点验证 SOP
+# openLog AI Development Skill — Node Verification SOP
 
-将此文件内容放入项目的 `CLAUDE.md`（或 Cursor Rules / Copilot Instructions），
-即可让 AI 工具在开发过程中自动使用 openLog 验证每个功能节点。
-
----
-
-## 使用方式
-
-将下方 **「粘贴到 CLAUDE.md 的内容」** 复制到你项目根目录的 `CLAUDE.md`。
+Add the content below to your project's `CLAUDE.md` (or Cursor Rules / Copilot Instructions)
+to enable AI tools to automatically verify every feature node during development using openLog.
 
 ---
 
-## 粘贴到 CLAUDE.md 的内容
+## How to Use
+
+Copy the **"Content for CLAUDE.md"** section below into your project's root `CLAUDE.md`.
+
+---
+
+## Content for CLAUDE.md
 
 ```markdown
-## 🔬 开发验证 SOP（由 openLog 提供）
+## 🔬 Development Verification SOP (Powered by openLog)
 
-你在开发 H5 页面功能时，**必须** 在每个关键节点完成后，
-通过 openLog MCP 工具在真机上验证该节点是否正常工作。
-**不要跳过验证直接继续下一节点。**
+When developing H5 page features, you **must** verify each key node
+on a real device using openLog MCP tools after completing it.
+**Do not skip verification and proceed to the next node.**
 
-### 验证工具
+### Verification Tools
 
-优先使用 `verify_checkpoint` 一次性完成多项检查。
-如需实时观测，可在触发前先调用 `watch_logs`。
+Prefer `verify_checkpoint` to run multiple checks in one call.
+For real-time observation, call `watch_logs` before triggering the action.
 
-### 各类功能节点的验证方式
+### Verification Methods by Node Type
 
-#### 事件绑定节点
+#### Event Binding Nodes
 ```
 verify_checkpoint(
-  checkpoint: "描述功能",
-  triggerJs: "触发操作的 JS",
+  checkpoint: "describe the feature",
+  triggerJs: "JS to trigger the action",
   expects: {
     noErrors: true,
-    js: [{ code: "!!document.querySelector('#your-element')", description: "元素存在" }]
+    js: [{ code: "!!document.querySelector('#your-element')", description: "element exists" }]
   }
 )
 ```
 
-#### 接口调用节点
+#### API Call Nodes
 ```
 verify_checkpoint(
-  checkpoint: "描述功能",
-  triggerJs: "触发接口的 JS",
+  checkpoint: "describe the feature",
+  triggerJs: "JS to trigger the API call",
   waitMs: 1500,
   expects: {
     noErrors: true,
@@ -52,10 +52,10 @@ verify_checkpoint(
 )
 ```
 
-#### 状态存储节点（登录 / 鉴权）
+#### State Storage Nodes (Login / Auth)
 ```
 verify_checkpoint(
-  checkpoint: "描述功能",
+  checkpoint: "describe the feature",
   expects: {
     noErrors: true,
     storage: [{ key: "token", storageType: "localStorage" }]
@@ -63,132 +63,133 @@ verify_checkpoint(
 )
 ```
 
-#### 页面跳转节点
+#### Page Navigation Nodes
 ```
 verify_checkpoint(
-  checkpoint: "描述功能",
+  checkpoint: "describe the feature",
   expects: {
     noErrors: true,
-    js: [{ code: "location.pathname === '/target-path'", description: "已跳转到目标页" }]
+    js: [{ code: "location.pathname === '/target-path'", description: "navigated to target page" }]
   }
 )
 ```
 
-#### 完整功能交付前
+#### Before Full Feature Delivery
 ```
-health_check()       → 健康分不低于 80
-ai_analyze()         → 无高优先级问题
-take_screenshot()    → 截图存档
+health_check()       → health score no lower than 80
+ai_analyze()         → no high-priority issues
+take_screenshot()    → archive screenshot
 ```
 
-### 验证失败处理规则
+### Failure Handling Rules
 
-1. `failed_checks` 不为空 → 定位问题，修复代码，重新验证，**不得跳过**
-2. 连续两次失败同一项 → 使用 `get_console_logs(level="error")` + `get_network_requests` 深入排查
-3. 全部通过 → 在回复中标注 `✅ 节点已验证`，然后继续下一节点
+1. `failed_checks` is not empty → locate the issue, fix the code, re-verify — **do not skip**
+2. Same check fails twice in a row → use `get_console_logs(level="error")` + `get_network_requests` for deep investigation
+3. All passed → annotate `✅ Node verified` in your reply, then proceed to next node
 ```
 
 ---
 
-## 完整开发循环示意
+## Complete Development Loop
 
 ```
-[AI 写代码] → [热更新到设备] → [verify_checkpoint] 
+[AI writes code] → [Hot-reload to device] → [verify_checkpoint]
      ↑                                    |
      |         ✅ passed                  |
      └──────────────────────────────────┘
                      ↓ ❌ failed
               [get_console_logs / get_network_requests]
                      ↓
-              [AI 修复代码] → 重新 verify_checkpoint
+              [AI fixes code] → re-run verify_checkpoint
 ```
 
 ---
 
-## 🤖 子代理后台监听模式
+## 🤖 Sub-Agent Background Monitoring Mode
 
-**核心原则：日志监听和报错监听交给子代理，不阻塞主代理写代码。**
+**Core principle: log and error monitoring run in sub-agents, never blocking the main agent from writing code.**
 
-### 开发会话启动时（主代理执行一次）
+### At Development Session Start (Main Agent Runs Once)
 
 ```
-start_monitor(type="error") → errorMonitorId   # 交给「报错子代理」
-start_monitor(type="log")   → logMonitorId     # 交给「日志子代理」
+start_monitor(type="error") → errorMonitorId   # hand to "error sub-agent"
+start_monitor(type="log")   → logMonitorId     # hand to "log sub-agent"
 ```
 
-### 报错子代理（独立运行，循环执行）
+### Error Sub-Agent (Runs Independently, Loops)
 
 ```
 loop:
   result = poll_monitor(errorMonitorId)
   if result.hasAlert:
-    → 立即通知主代理：result.alertSummary
-    → 主代理暂停当前任务，优先处理报错
-  sleep(3000ms)   # 每 3 秒轮询一次
+    → immediately notify main agent: result.alertSummary
+    → main agent pauses current task, handles error first
+  sleep(3000ms)   # poll every 3 seconds
 ```
 
-### 日志子代理（独立运行，循环执行）
+### Log Sub-Agent (Runs Independently, Loops)
 
 ```
 loop:
   result = poll_monitor(logMonitorId)
   if result.hasAlert:
-    → 汇总 result.newEvents 中 warn/error，通知主代理
+    → summarize result.newEvents warn/error, notify main agent
   elif result.newEvents.length > 0:
-    → 静默积累，供主代理需要时查询
-  sleep(5000ms)   # 每 5 秒轮询一次
+    → accumulate silently, available for main agent to query
+  sleep(5000ms)   # poll every 5 seconds
 ```
 
-### 主代理收到告警后的处理
+### Main Agent Alert Handling
 
 ```
-1. 暂停当前节点开发
-2. get_console_logs(level="error") 获取完整错误上下文
-3. 定位 + 修复
-4. verify_checkpoint 重新验证当前节点
-5. 继续开发
+1. Pause current node development
+2. get_console_logs(level="error") to get full error context
+3. Locate + fix
+4. verify_checkpoint to re-verify current node
+5. Resume development
 ```
 
-### 会话结束时
+### At Session End
 
 ```
 stop_monitor(errorMonitorId)
 stop_monitor(logMonitorId)
 ```
 
-### 架构示意
+### Architecture Diagram
 
 ```
 ┌─────────────────────────────────────┐
-│           主代理（写代码）            │
-│  verify_checkpoint  →  继续开发      │
-│         ↑ 收到告警，暂停处理          │
+│        Main Agent (writes code)      │
+│  verify_checkpoint  →  continue dev  │
+│         ↑ receives alert, pauses     │
 └────────────┬────────────────────────┘
-             │ 告警通知
+             │ alert notification
     ┌────────┴──────────┐
     │                   │
 ┌───▼──────┐      ┌─────▼─────┐
-│ 报错子代理 │      │ 日志子代理  │
+│ Error     │      │ Log        │
+│ Sub-Agent │      │ Sub-Agent  │
 │poll_monitor│     │poll_monitor│
 │(error)    │      │(log)      │
-│每 3s 轮询  │      │每 5s 轮询  │
+│every 3s   │      │every 5s   │
 └───────────┘      └───────────┘
          ↑               ↑
-    MCP 进程内 watcher 注册表（游标推进）
+    In-process MCP watcher registry (cursor-based)
          ↓               ↓
-    openLog Server API（/logs?since=cursor）
+    openLog Server API (/logs?since=cursor)
 ```
 
 ---
 
-## 各节点检查速查表
+## Node Check Quick Reference
 
-| 功能节点 | 推荐 expects 配置 |
-|---------|-----------------|
-| DOM 渲染完成 | `js: [{ code: "!!document.querySelector('#el')" }]` |
-| 表单校验触发 | `logs: [{ contains: "validate", level: "log" }]` |
-| 接口调用 | `network: [{ urlPattern: "/api/xxx", status: 200 }]` |
-| 登录成功 | `storage: [{ key: "token" }]` + `js: location.pathname` |
-| 错误处理 | `logs: [{ contains: "错误提示文案" }]` + `noErrors: false` |
-| 页面跳转 | `js: [{ code: "location.pathname === '/xxx'" }]` |
-| 数据渲染 | `js: [{ code: "document.querySelectorAll('.item').length > 0" }]` |
+| Node Type | Recommended expects Config |
+|-----------|---------------------------|
+| DOM rendered | `js: [{ code: "!!document.querySelector('#el')" }]` |
+| Form validation | `logs: [{ contains: "validate", level: "log" }]` |
+| API call | `network: [{ urlPattern: "/api/xxx", status: 200 }]` |
+| Login success | `storage: [{ key: "token" }]` + `js: location.pathname` |
+| Error handling | `logs: [{ contains: "error message text" }]` + `noErrors: false` |
+| Page navigation | `js: [{ code: "location.pathname === '/xxx'" }]` |
+| Data rendering | `js: [{ code: "document.querySelectorAll('.item').length > 0" }]` |
