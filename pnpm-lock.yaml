@@ -230,6 +230,9 @@ importers:
       shx:
         specifier: ^0.4.0
         version: 0.4.0
+      terser-webpack-plugin:
+        specifier: ^5.4.0
+        version: 5.4.0(webpack@5.105.4)
       webpack:
         specifier: ^5.92.1
         version: 5.105.4(webpack-cli@5.1.4)

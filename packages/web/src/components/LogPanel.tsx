@@ -117,7 +117,7 @@ export function LogPanel({ deviceId, tabId }: LogPanelProps) {
     setClearingHistory(true);
 
     try {
-      const result = await api.deleteLogs(deviceId);
+      await api.deleteLogs(deviceId);
       clearLogs();
     } catch (error) {
       console.error('[LogPanel] clear history failed:', error);
