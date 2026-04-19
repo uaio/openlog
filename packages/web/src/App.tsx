@@ -11,12 +11,14 @@ import { MockPanel } from './components/MockPanel.js';
 import { HealthPanel } from './components/HealthPanel.js';
 import { AIAnalysisPanel } from './components/AIAnalysisPanel.js';
 import { Tabs, type Tab } from './components/Tabs.js';
+import { useI18n } from './i18n/index.js';
 import type { Device } from './types/index.js';
 import './styles/global.css';
 
 function App() {
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
   const [activeTab, setActiveTab] = useState('console');
+  const { t } = useI18n();
 
   const handleSelectDevice = (device: Device) => {
     setSelectedDevice(device);
@@ -25,26 +27,26 @@ function App() {
   const tabs: Tab[] = [
     {
       id: 'console',
-      label: '控制台',
+      label: t.tabs.console,
       icon: '📝',
       content: selectedDevice ? (
         <LogPanel deviceId={selectedDevice.deviceId} />
       ) : (
         <div style={styles.placeholder}>
           <div style={styles.placeholderIcon}>📱</div>
-          <div style={styles.placeholderText}>从左侧选择一个设备开始调试</div>
+          <div style={styles.placeholderText}>{t.common.selectDevice}</div>
         </div>
       ),
     },
     {
       id: 'network',
-      label: '网络',
+      label: t.tabs.network,
       icon: '🌐',
       content: <NetworkPanel deviceId={selectedDevice?.deviceId} />,
     },
     {
       id: 'storage',
-      label: '存储',
+      label: t.tabs.storage,
       icon: '💾',
       content: <StoragePanel deviceId={selectedDevice?.deviceId} />,
     },
@@ -62,31 +64,31 @@ function App() {
     },
     {
       id: 'perf_run',
-      label: '跑分',
+      label: t.tabs.perf,
       icon: '🏁',
       content: <PerfRunPanel deviceId={selectedDevice?.deviceId} />,
     },
     {
       id: 'mock',
-      label: 'Mock',
+      label: t.tabs.mock,
       icon: '🎭',
       content: <MockPanel deviceId={selectedDevice?.deviceId} />,
     },
     {
       id: 'health',
-      label: '健康',
+      label: t.tabs.health,
       icon: '🩺',
       content: <HealthPanel deviceId={selectedDevice?.deviceId} />,
     },
     {
       id: 'ai',
-      label: 'AI分析',
-      icon: '🤖',
+      label: t.tabs.analysis,
+      icon: '🧠',
       content: <AIAnalysisPanel deviceId={selectedDevice?.deviceId} />,
     },
     {
       id: 'settings',
-      label: '设置',
+      label: t.tabs.settings,
       icon: '⚙️',
       content: <SettingsPanel deviceId={selectedDevice?.deviceId} />,
     },
@@ -98,8 +100,8 @@ function App() {
         <h1 style={styles.title}>openLog Web Viewer</h1>
         <p style={styles.subtitle}>
           {selectedDevice
-            ? `当前设备: ${selectedDevice.ua.slice(0, 50)}${selectedDevice.ua.length > 50 ? '...' : ''}`
-            : '请选择一个设备查看日志'}
+            ? `${selectedDevice.ua.slice(0, 50)}${selectedDevice.ua.length > 50 ? '...' : ''}`
+            : t.common.selectDevice}
         </p>
       </div>
 

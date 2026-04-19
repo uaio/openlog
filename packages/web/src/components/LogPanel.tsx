@@ -230,9 +230,9 @@ export function LogPanel({ deviceId }: LogPanelProps) {
               borderColor: '#13c2c2',
               color: !logs.length ? '#999' : '#13c2c2',
             }}
-            title="AI 分析日志"
+            title="智能分析日志"
           >
-            🤖 AI分析
+            🧠 智能分析
           </button>
           <button
             onClick={handleClearCurrent}

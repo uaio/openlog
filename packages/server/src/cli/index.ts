@@ -11,16 +11,33 @@ export interface CLIOptions {
   port?: number;
   host?: string;
   webDistPath?: string;
+  corsOrigin?: string;
+  apiKey?: string;
 }
 
 export async function start(options: CLIOptions = {}) {
   const port = options.port || 38291;
   const host = options.host; // 用户指定的公网地址（域名或 IP）
+  const corsOrigin = options.corsOrigin || process.env.OPENLOG_CORS_ORIGIN;
+  const apiKey = options.apiKey || process.env.OPENLOG_API_KEY;
 
   const app = express();
   const server = http.createServer(app);
 
-  app.use(cors());
+  app.use(cors(corsOrigin ? { origin: corsOrigin.split(',').map((s) => s.trim()) } : undefined));
+
+  // Optional API key authentication middleware
+  if (apiKey) {
+    app.use((req, res, next) => {
+      // Skip auth for static files
+      if (!req.path.startsWith('/api/')) return next();
+      const provided = req.headers['x-api-key'] || req.query['apiKey'];
+      if (provided !== apiKey) {
+        return res.status(401).json({ error: 'Unauthorized: invalid API key' });
+      }
+      next();
+    });
+  }
 
   const {
     deviceStore,
@@ -32,7 +49,7 @@ export async function start(options: CLIOptions = {}) {
     screenshotStore,
     perfRunStore,
     mockStore,
-  } = createWebSocketServer(server);
+  } = createWebSocketServer(server, { apiKey });
   app.use(express.json({ limit: '5mb' })); // screenshots can be large, but cap at 5MB
   app.use(
     createRoutes(

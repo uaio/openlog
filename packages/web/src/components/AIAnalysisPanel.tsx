@@ -146,7 +146,7 @@ export function AIAnalysisPanel({ deviceId }: AIAnalysisPanelProps) {
   return (
     <div style={styles.container}>
       <div style={styles.toolbar}>
-        <span style={styles.title}>🤖 AI 综合分析</span>
+        <span style={styles.title}>🧠 智能分析</span>
         <div style={styles.controls}>
           <label style={styles.label}>分析错误日志条数：</label>
           <select

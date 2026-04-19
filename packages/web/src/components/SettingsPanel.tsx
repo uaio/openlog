@@ -1,63 +1,70 @@
 import { CSSProperties } from 'react';
+import { useI18n, type Lang } from '../i18n/index.js';
 
 interface SettingsPanelProps {
   deviceId?: string;
 }
 
 export function SettingsPanel({ deviceId }: SettingsPanelProps) {
+  const { t, lang, setLang } = useI18n();
+
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <h3 style={styles.title}>设置</h3>
-        {deviceId && <span style={styles.deviceId}>设备: {deviceId.slice(0, 8)}...</span>}
+        <h3 style={styles.title}>{t.settings.title}</h3>
+        {deviceId && <span style={styles.deviceId}>ID: {deviceId.slice(0, 8)}...</span>}
       </div>
       <div style={styles.content}>
         <div style={styles.section}>
-          <h4 style={styles.sectionTitle}>设备信息</h4>
+          <h4 style={styles.sectionTitle}>{t.settings.deviceInfo}</h4>
           {deviceId ? (
             <div style={styles.info}>
               <div style={styles.infoItem}>
-                <span style={styles.infoLabel}>设备 ID:</span>
+                <span style={styles.infoLabel}>Device ID:</span>
                 <span style={styles.infoValue}>{deviceId}</span>
               </div>
             </div>
           ) : (
-            <div style={styles.empty}>未选择设备</div>
+            <div style={styles.empty}>{t.common.selectDevice}</div>
           )}
         </div>
 
         <div style={styles.section}>
-          <h4 style={styles.sectionTitle}>显示设置</h4>
+          <h4 style={styles.sectionTitle}>{t.settings.display}</h4>
           <div style={styles.setting}>
             <label style={styles.settingLabel}>
               <input type="checkbox" style={styles.checkbox} />
-              <span>显示时间戳</span>
+              <span>{t.settings.showTimestamp}</span>
             </label>
           </div>
           <div style={styles.setting}>
             <label style={styles.settingLabel}>
               <input type="checkbox" style={styles.checkbox} defaultChecked />
-              <span>显示日志级别</span>
-            </label>
-          </div>
-          <div style={styles.setting}>
-            <label style={styles.settingLabel}>
-              <input type="checkbox" style={styles.checkbox} defaultChecked />
-              <span>自动滚动到底部</span>
+              <span>{t.settings.autoScroll}</span>
             </label>
           </div>
         </div>
 
         <div style={styles.section}>
-          <h4 style={styles.sectionTitle}>关于</h4>
+          <h4 style={styles.sectionTitle}>Language / 语言</h4>
+          <div style={styles.setting}>
+            <select
+              value={lang}
+              onChange={(e) => setLang(e.target.value as Lang)}
+              style={styles.langSelect}
+            >
+              <option value="zh">中文</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+        </div>
+
+        <div style={styles.section}>
+          <h4 style={styles.sectionTitle}>About</h4>
           <div style={styles.info}>
             <div style={styles.infoItem}>
-              <span style={styles.infoLabel}>版本:</span>
+              <span style={styles.infoLabel}>Version:</span>
               <span style={styles.infoValue}>0.1.0</span>
-            </div>
-            <div style={styles.infoItem}>
-              <span style={styles.infoLabel}>项目:</span>
-              <span style={styles.infoValue}>openLog</span>
             </div>
             <div style={styles.infoItem}>
               <span style={styles.infoLabel}>GitHub:</span>
@@ -167,6 +174,14 @@ const styles: Record<string, CSSProperties> = {
   },
   checkbox: {
     margin: 0,
+    cursor: 'pointer',
+  },
+  langSelect: {
+    padding: '6px 12px',
+    fontSize: '13px',
+    borderRadius: '4px',
+    border: '1px solid #d9d9d9',
+    backgroundColor: '#fff',
     cursor: 'pointer',
   },
 };

@@ -1,5 +1,6 @@
 import { WebSocketServer, WebSocket } from 'ws';
-import { Server as HTTPServer } from 'http';
+import { Server as HTTPServer, IncomingMessage } from 'http';
+import { URL } from 'url';
 import {
   DeviceStore,
   LogStore,
@@ -19,7 +20,14 @@ import {
   sendToDevice,
 } from './handlers.js';
 
-export function createWebSocketServer(httpServer: HTTPServer) {
+export interface WebSocketServerOptions {
+  apiKey?: string;
+}
+
+export function createWebSocketServer(
+  httpServer: HTTPServer,
+  options: WebSocketServerOptions = {},
+) {
   const deviceStore = new DeviceStore();
   const logStore = new LogStore();
   const networkStore = new NetworkStore();
@@ -31,7 +39,23 @@ export function createWebSocketServer(httpServer: HTTPServer) {
   const mockStore = new MockStore();
   const deviceIds = new Map<WebSocket, string>();
 
-  const wss = new WebSocketServer({ server: httpServer });
+  const wss = new WebSocketServer({
+    server: httpServer,
+    verifyClient: options.apiKey
+      ? (
+          info: { req: IncomingMessage },
+          cb: (result: boolean, code?: number, message?: string) => void,
+        ) => {
+          const url = new URL(info.req.url || '/', `http://${info.req.headers.host}`);
+          const token = url.searchParams.get('apiKey');
+          if (token === options.apiKey) {
+            cb(true);
+          } else {
+            cb(false, 401, 'Unauthorized');
+          }
+        }
+      : undefined,
+  });
 
   wss.on('connection', (ws: WebSocket) => {
     let isViewer = false;
