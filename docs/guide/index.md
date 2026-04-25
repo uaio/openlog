@@ -22,11 +22,14 @@ openLog is a real-time mobile H5 debugging tool that helps developers monitor co
 
 | Package | Description |
 |---------|-------------|
+| `@openlog/types` | Shared TypeScript type definitions (single source of truth) |
 | `@openlog/sdk` | Client SDK injected into H5 pages |
 | `@openlog/server` | WebSocket + HTTP server for data collection |
-| `@openlog/cli` | CLI tool to start the server (`npx @openlog/cli`) |
+| `@openlog/web` | PC debug panel (React) served by the server |
 | `@openlog/mcp` | MCP server for AI-powered debugging |
-| `@openlog/types` | Shared TypeScript type definitions |
+| `@openlog/cli` | CLI tool to start the server (`npx @openlog/cli`) and configure AI tools |
+| `eruda` | Bundled Eruda build used internally by the SDK for local panel |
+| `@openlog/demo` | Demo & test pages for development |
 
 ## Features
 

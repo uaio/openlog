@@ -1,6 +1,6 @@
 {
   "name": "@openlog/server",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Node.js WebSocket + REST API server for openLog — real-time device communication hub",
   "keywords": [
     "openlog",

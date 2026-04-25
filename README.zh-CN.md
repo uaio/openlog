@@ -323,7 +323,10 @@ openLog/
 │   ├── sdk/        # 移动端 SDK（数据采集 + Eruda 集成）
 │   ├── server/     # Node.js 服务（WebSocket + REST API）
 │   ├── web/        # PC 调试面板（React）
-│   └── mcp/        # MCP Server（AI 工具集）
+│   ├── mcp/        # MCP Server（AI 工具集）
+│   ├── cli/        # CLI 工具（@openlog/cli）— npx 入口，管理服务生命周期 & AI 工具配置
+│   ├── eruda/      # 内置 Eruda 构建产物（SDK 本地面板使用）
+│   └── demo/       # 开发用演示 & 测试页面
 ```
 
 ### 数据流

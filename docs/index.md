@@ -2,8 +2,8 @@
 layout: home
 hero:
   name: openLog
-  text: Mobile H5 Debugging Tool
-  tagline: Real-time console, network, performance monitoring for mobile web apps
+  text: Frontend H5 Monitoring for AI Agents
+  tagline: Real-time data collection, PC visualization, AI-queryable — embed one line, debug from anywhere
   actions:
     - theme: brand
       text: Get Started

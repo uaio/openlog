@@ -1,6 +1,6 @@
 {
   "name": "@openlog/sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Mobile H5 SDK for openLog — real-time console, network, storage, DOM, performance collection",
   "keywords": ["openlog", "sdk", "mobile-debugging", "h5", "console", "network", "performance", "eruda"],
   "author": "openLog Contributors",

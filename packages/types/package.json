@@ -1,6 +1,6 @@
 {
   "name": "@openlog/types",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Shared TypeScript type definitions for openLog (Envelope format, events, protocol)",
   "keywords": ["openlog", "types", "typescript", "mobile-debugging", "logging"],
   "author": "openLog Contributors",

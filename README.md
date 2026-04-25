@@ -324,7 +324,10 @@ openLog/
 │   ├── sdk/        # Mobile SDK (data collection + Eruda integration)
 │   ├── server/     # Node.js server (WebSocket + REST API)
 │   ├── web/        # PC debug panel (React)
-│   └── mcp/        # MCP Server (AI toolset)
+│   ├── mcp/        # MCP Server (AI toolset)
+│   ├── cli/        # CLI tool (@openlog/cli) — npx entry, server lifecycle & AI tool config
+│   ├── eruda/      # Bundled Eruda build (used internally by SDK for local panel)
+│   └── demo/       # Demo & test pages for development
 ```
 
 ### Data Flow
