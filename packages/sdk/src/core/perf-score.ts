@@ -82,9 +82,7 @@ function rating(score: number): 'good' | 'needs-improvement' | 'poor' {
   return 'poor';
 }
 
-export function scorePerfRun(
-  snapshot: PerformancePayload,
-): PerfRunScore {
+export function scorePerfRun(snapshot: PerformancePayload): PerfRunScore {
   const vitalsMap = new Map(snapshot.vitals.map((v) => [v.name, v.value]));
 
   const fpsData = scoreFPS(snapshot.samples);

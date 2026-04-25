@@ -9,7 +9,13 @@ import type { PerformanceSample as SDKPerformanceSample } from '../types/index.j
 import type { DataBus } from '../core/DataBus.js';
 
 // Re-export for backward compatibility
-export type { SDKPerformanceSample as PerformanceSample, WebVital, LongTask, ResourceTiming, InteractionTiming };
+export type {
+  SDKPerformanceSample as PerformanceSample,
+  WebVital,
+  LongTask,
+  ResourceTiming,
+  InteractionTiming,
+};
 
 declare global {
   interface Performance {
